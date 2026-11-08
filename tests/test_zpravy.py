@@ -86,3 +86,28 @@ def test_prehled_bez_letu():
     assert message.title == "Přehled"
     assert message.body.startswith("Zatím žádné lety.")
     assert message.click_url is None
+
+
+def test_poplach_krici_ma_nejvyssi_prioritu_a_odkaz_na_nejlevnejsi():
+    offers = {
+        "KRK 2027-05-13": offer("KRK", "2027-05-13", 1890),
+        "VIE 2027-05-12": offer("VIE", "2027-05-12", 1990),
+        "PRG 2027-05-12": offer("PRG", "2027-05-12", 4000),
+    }
+
+    message = zpravy.alert_message(offers, 2000)
+
+    assert message.priority == 5
+    assert message.title == "🚨🚨 POD 2 000 Kč! 1 890 Kč/os. 🚨🚨"
+    assert "‼️ CENA POD 2 000 KČ ‼️" in message.body
+    assert "📍 Krakov 8.–13. 5. · Vymyšlené aerolinky" in message.body
+    assert "Další pod 2 000 Kč:" in message.body
+    assert "Vídeň" in message.body
+    assert "Praha" not in message.body  # 4 000 Kč není pod hranicí
+    assert message.click_url == "https://example.test/KRK"
+
+
+def test_bezne_zpravy_maji_normalni_prioritu():
+    message = zpravy.overview_message("☀️ Ranní přehled", {"PRG 2027-05-12": offer("PRG", "2027-05-12", 4000)})
+
+    assert message.priority == 3

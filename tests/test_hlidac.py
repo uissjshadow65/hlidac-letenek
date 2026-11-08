@@ -32,16 +32,17 @@ class FakeNotify:
     """Místo odeslání do mobilu si zprávy jen zapamatuje.
 
     Ukládá jen začátek titulku (před " · od …"), cena se v testech mění.
+    Poplach s nejvyšší prioritou ukládá jako "🚨 POPLACH".
     """
 
     def __init__(self, broken=False):
         self.sent = []
         self.broken = broken
 
-    def __call__(self, topic, title, body, click=None):
+    def __call__(self, topic, title, body, click=None, priority=3):
         if self.broken:
             raise OSError("vymyšlený výpadek ntfy")
-        self.sent.append(title.split(" · ")[0])
+        self.sent.append("🚨 POPLACH" if priority == 5 else title.split(" · ")[0])
 
 
 def run(tmp_path, google, notify, now=NIGHT):
@@ -171,3 +172,74 @@ def test_poskozeny_stav_vrati_kod_2(tmp_path, monkeypatch):
     monkeypatch.setattr(hlidac, "STATE_PATH", tmp_path / "ceny.json")
 
     assert hlidac.main() == 2
+
+
+# --- 🚨 Poplach pod 2 000 Kč/os. ---
+
+
+def test_pokles_pod_2000_posle_poplach_s_nejvyssi_prioritou(tmp_path):
+    run(tmp_path, FakeGoogle(), FakeNotify())
+    notify = FakeNotify()
+
+    run(tmp_path, FakeGoogle({"KRK 2027-05-13": 1990}), notify)
+
+    # Nejdřív běžná zpráva o změně, poplach poslední → v mobilu úplně nahoře.
+    assert notify.sent == ["💰 Změna ceny", "🚨 POPLACH"]
+
+
+def test_cena_presne_2000_neni_poplach(tmp_path):
+    run(tmp_path, FakeGoogle(), FakeNotify())
+    notify = FakeNotify()
+
+    run(tmp_path, FakeGoogle({"KRK 2027-05-13": 2000}), notify)
+
+    assert "🚨 POPLACH" not in notify.sent
+
+
+def test_poplach_se_neopakuje_kazdou_hodinu(tmp_path):
+    run(tmp_path, FakeGoogle(), FakeNotify())
+    run(tmp_path, FakeGoogle({"KRK 2027-05-13": 1990}), FakeNotify())
+    notify = FakeNotify()
+
+    run(tmp_path, FakeGoogle({"KRK 2027-05-13": 1990}), notify)
+
+    assert notify.sent == []
+
+
+def test_dalsi_zlevneni_pod_hranici_posle_poplach_znovu(tmp_path):
+    run(tmp_path, FakeGoogle(), FakeNotify())
+    run(tmp_path, FakeGoogle({"KRK 2027-05-13": 1990}), FakeNotify())
+    notify = FakeNotify()
+
+    run(tmp_path, FakeGoogle({"KRK 2027-05-13": 1850}), notify)
+
+    assert notify.sent == ["💰 Změna ceny", "🚨 POPLACH"]
+
+
+def test_mirne_zdrazeni_pod_hranici_poplach_neposle(tmp_path):
+    run(tmp_path, FakeGoogle(), FakeNotify())
+    run(tmp_path, FakeGoogle({"KRK 2027-05-13": 1900}), FakeNotify())
+    notify = FakeNotify()
+
+    run(tmp_path, FakeGoogle({"KRK 2027-05-13": 1950}), notify)
+
+    assert notify.sent == ["💰 Změna ceny"]
+
+
+def test_po_navratu_nad_hranici_a_novem_poklesu_prijde_poplach_znovu(tmp_path):
+    run(tmp_path, FakeGoogle(), FakeNotify())
+    run(tmp_path, FakeGoogle({"KRK 2027-05-13": 1990}), FakeNotify())
+    run(tmp_path, FakeGoogle({"KRK 2027-05-13": 2100}), FakeNotify())
+    notify = FakeNotify()
+
+    run(tmp_path, FakeGoogle({"KRK 2027-05-13": 1990}), notify)
+
+    assert notify.sent == ["💰 Změna ceny", "🚨 POPLACH"]
+
+
+def test_poplach_prijde_i_pri_prvnim_behu(tmp_path):
+    notify = FakeNotify()
+
+    run(tmp_path, FakeGoogle({"VIE 2027-05-12": 1500}), notify)
+
+    assert notify.sent == ["✈️ Hlídač spuštěn", "🚨 POPLACH"]

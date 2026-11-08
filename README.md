@@ -10,6 +10,7 @@ zbývá jen jedno místo, uvidíš skutečnou cenu pro dva.
 ## Jaké zprávy chodí
 | Zpráva | Kdy |
 |---|---|
+| 🚨🚨 POD 2 000 Kč! | cena za osobu klesne pod `ALERT_PRICE_PER_PERSON` – nejvyšší priorita; znovu jen při dalším zlevnění |
 | Hlídač letenek spuštěn ✈️ | první běh, přehled všech cen |
 | Změna ceny letenek do Paříže | při každé změně (souhrn všech změn v jednom běhu) |
 | Ranní přehled letenek ☀️ | jednou denně, první běh po 8:00 – zároveň potvrzení, že hlídač žije |
@@ -21,7 +22,7 @@ zbývá jen jedno místo, uvidíš skutečnou cenu pro dva.
 ## Soubory
 | Soubor | Co dělá |
 |---|---|
-| `nastaveni.py` | letiště, data, počet osob, čas ranního přehledu – **změny dělej tady** |
+| `nastaveni.py` | letiště, data, počet osob, hranice poplachu, čas ranního přehledu – **změny dělej tady** |
 | `ceny.py` | dotaz na Google Lety a výběr nejlevnějšího letu |
 | `porovnani.py` | co se změnilo od minula |
 | `zpravy.py` | texty notifikací |

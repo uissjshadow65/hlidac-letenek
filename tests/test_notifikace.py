@@ -18,6 +18,7 @@ def test_pozadavek_obsahuje_kanal_titulek_a_zpravu_v_utf8():
         "title": "Paříž ✈️",
         "message": "Cena klesla na 1 999 Kč",
         "tags": ["chart_with_downwards_trend"],
+        "priority": 3,
     }
 
 
@@ -56,3 +57,9 @@ def test_odeslani_pouzije_pripraveny_pozadavek(monkeypatch):
 
     assert len(sent) == 1
     assert json.loads(sent[0].data)["topic"] == "kanal"
+
+
+def test_poplach_ma_prioritu_5():
+    payload = json.loads(notifikace.build_request("k", "T", "Z", priority=notifikace.PRIORITY_MAX).data)
+
+    assert payload["priority"] == 5

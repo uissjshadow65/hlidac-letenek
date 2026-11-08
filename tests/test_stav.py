@@ -47,3 +47,10 @@ def test_poskozeny_soubor_vyhodi_stateerror(tmp_path):
 
     with pytest.raises(StateError):
         load_state(path)
+
+
+def test_starsi_soubor_bez_poplachu_jde_nacist(tmp_path):
+    path = tmp_path / "ceny.json"
+    path.write_text('{"offers": {}, "failing_since": null, "last_daily_report": null}', encoding="utf-8")
+
+    assert load_state(path).alert_price is None

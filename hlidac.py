@@ -51,6 +51,23 @@ def check_all(get_offer, sleep) -> tuple[dict[str, Offer | None], int]:
     return results, failed
 
 
+def check_alert(state) -> zpravy.Message | None:
+    """🚨 Poplach, když je nejlevnější cena pod hranicí.
+
+    Aby poplach nechodil každou hodinu: pošle se, když cena pod hranici spadne,
+    a pak znovu jen při dalším zlevnění. Když cena vyskočí nad hranici, vše se vynuluje.
+    """
+    limit = nastaveni.ALERT_PRICE_PER_PERSON
+    best = zpravy.cheapest(state.offers)
+    if best is None or best.price_per_person >= limit:
+        state.alert_price = None
+        return None
+    if state.alert_price is not None and best.price_per_person >= state.alert_price:
+        return None  # o téhle (nebo nižší) ceně už víš
+    state.alert_price = best.price_per_person
+    return zpravy.alert_message(state.offers, limit)
+
+
 def run(state_path: Path, topic: str, now: datetime, get_offer=ceny.get_offer, notify=None, sleep=time.sleep) -> int:
     """Jeden běh hlídače. Internet, notifikace i čekání jdou v testech nahradit."""
     notify = notify or notifikace.send_notification
@@ -76,6 +93,9 @@ def run(state_path: Path, topic: str, now: datetime, get_offer=ceny.get_offer, n
             messages.append(zpravy.overview_message("✈️ Hlídač spuštěn", state.offers))
         elif changes:
             messages.append(zpravy.changes_message(changes, state.offers))
+        alert = check_alert(state)
+        if alert:
+            messages.append(alert)  # poslední = v mobilu nahoře
 
     today = now.date().isoformat()
     if now.hour >= nastaveni.DAILY_REPORT_HOUR and state.last_daily_report != today:
@@ -89,7 +109,7 @@ def run(state_path: Path, topic: str, now: datetime, get_offer=ceny.get_offer, n
 
     for message in messages:
         try:
-            notify(topic, message.title, message.body, click=message.click_url)
+            notify(topic, message.title, message.body, click=message.click_url, priority=message.priority)
             log.info("Odeslána notifikace: %s", message.title)
         except Exception as error:
             # Stav neukládáme – příští běh změnu najde znovu a zkusí ji poslat.

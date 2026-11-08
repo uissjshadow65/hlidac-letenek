@@ -12,6 +12,7 @@ class Message:
     title: str
     body: str
     click_url: str | None = None  # klepnutí na notifikaci otevře tento odkaz
+    priority: int = 3  # 1–5, 5 = poplach
 
 
 def format_price(price: int) -> str:
@@ -111,6 +112,34 @@ def overview_message(title: str, offers: dict[str, Offer | None], warning: str |
         lines += ["", "Bez letů: " + ", ".join(without)]
 
     return Message(title=title_with_best(title, best), body="\n".join(lines), click_url=best.url if best else None)
+
+
+def alert_message(offers: dict[str, Offer | None], limit: int) -> Message:
+    """🚨 Poplach: nejlevnější cena je pod hranicí. Má křičet – nejvyšší priorita, hodně emoji."""
+    below = sorted(
+        (o for o in offers.values() if o is not None and o.price_per_person < limit),
+        key=lambda o: o.price_per_person,
+    )
+    best = below[0]
+    lines = [
+        "🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨",
+        f"‼️ CENA POD {format_price(limit).upper()} ‼️",
+        "🚨🚨🚨🚨🚨🚨🚨🚨🚨🚨",
+        "",
+        f"💰💰 {format_price(best.price_per_person)}/os. 💰💰",
+        f"📍 {origin_name(best.origin)} {format_trip(best.return_date)} · {', '.join(best.airlines)}",
+        "",
+        "👉👉 KUP HNED – klepni na zprávu 👈👈",
+    ]
+    if len(below) > 1:
+        lines += ["", f"Další pod {format_price(limit)}:"] + [format_offer(o) for o in below[1:]]
+    lines += ["🔥🔥🔥🔥🔥🔥🔥🔥🔥🔥"]
+    return Message(
+        title=f"🚨🚨 POD {format_price(limit)}! {format_price(best.price_per_person)}/os. 🚨🚨",
+        body="\n".join(lines),
+        click_url=best.url,
+        priority=5,
+    )
 
 
 def failure_message(failed: int) -> Message:

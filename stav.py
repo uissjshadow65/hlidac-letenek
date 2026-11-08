@@ -21,6 +21,7 @@ class State:
     offers: dict[str, Offer | None] = field(default_factory=dict)
     failing_since: str | None = None  # čas, od kdy selhávají všechny dotazy (None = vše v pořádku)
     last_daily_report: str | None = None  # datum posledního ranního hlášení, např. "2026-11-09"
+    alert_price: int | None = None  # cena, při které přišel poslední 🚨 poplach (None = cena je nad hranicí)
 
 
 def load_state(path: Path) -> State:
@@ -37,6 +38,7 @@ def load_state(path: Path) -> State:
             offers=offers,
             failing_since=data.get("failing_since"),
             last_daily_report=data.get("last_daily_report"),
+            alert_price=data.get("alert_price"),  # ve starším ceny.json chybí → None
         )
     except (ValueError, KeyError, TypeError) as error:
         raise StateError(f"Soubor {path.name} je poškozený: {error!r}") from error
@@ -51,6 +53,7 @@ def save_state(path: Path, state: State) -> None:
         "offers": {key: None if offer is None else asdict(offer) for key, offer in sorted(state.offers.items())},
         "failing_since": state.failing_since,
         "last_daily_report": state.last_daily_report,
+        "alert_price": state.alert_price,
     }
     temporary = path.with_name(path.name + ".tmp")
     temporary.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
