@@ -111,8 +111,12 @@ def test_bezne_zpravy_maji_normalni_prioritu():
     assert message.priority == 3
 
 
-def test_hodinova_kontrola_ukaze_nejlevnejsi_a_ze_se_nic_nezmenilo():
-    offers = {"KRK 2027-05-13": offer("KRK", "2027-05-13", 2656), "PRG 2027-05-12": offer("PRG", "2027-05-12", 4488)}
+def test_hodinova_kontrola_ukaze_nejlevnejsi_a_vsechna_letiste():
+    offers = {
+        "KRK 2027-05-13": offer("KRK", "2027-05-13", 2656),
+        "PRG 2027-05-12": offer("PRG", "2027-05-12", 4488),
+        "BTS 2027-05-12": None,
+    }
 
     message = zpravy.hourly_message(offers)
 
@@ -121,6 +125,12 @@ def test_hodinova_kontrola_ukaze_nejlevnejsi_a_ze_se_nic_nezmenilo():
         "🏆 NEJLEVNĚJŠÍ TEĎ",
         "💰 2 656 Kč/os.",
         "📍 Krakov 8.–13. 5. · Vymyšlené aerolinky",
+        zpravy.SEPARATOR,
+        "Všechny ceny:",
+        "Krakov 8.–13. 5.: 2 656 Kč/os. (Vymyšlené aerolinky)",
+        "Praha 8.–12. 5.: 4 488 Kč/os. (Vymyšlené aerolinky)",
+        "",
+        "Bez letů: Bratislava",
         "",
         "Beze změny od minulé kontroly.",
     ]

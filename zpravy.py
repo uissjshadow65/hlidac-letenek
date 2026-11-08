@@ -111,11 +111,9 @@ def overview_message(title: str, offers: dict[str, Offer | None], warning: str |
 
 
 def hourly_message(offers: dict[str, Offer | None]) -> Message:
-    """Hodinová zpráva, když se ceny nezměnily: jen nejlevnější nabídka."""
-    best = cheapest(offers)
-    lines = best_block(best)[:-1] if best else ["Zatím žádné lety."]  # bez dělicí čáry, nic pod ní není
-    lines += ["", "Beze změny od minulé kontroly."]
-    return Message(title=title_with_best("🕐 Hodinová kontrola", best), body="\n".join(lines))
+    """Hodinová zpráva, když se ceny nezměnily: nejlevnější nahoře + všechna letiště."""
+    overview = overview_message("🕐 Hodinová kontrola", offers)
+    return Message(title=overview.title, body=overview.body + "\n\nBeze změny od minulé kontroly.")
 
 
 def alert_message(offers: dict[str, Offer | None], limit: int) -> Message:
