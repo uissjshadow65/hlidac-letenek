@@ -52,7 +52,6 @@ def test_souhrnna_zprava_ma_nejlevnejsi_v_titulku_i_nahore():
         zpravy.SEPARATOR,
     ]
     assert message.body.split("\n")[4:] == ["Změny cen:", "📉 Vídeň 8.–12. 5.: 1 963 Kč/os. (Vymyšlené aerolinky), −150 Kč"]
-    assert message.click_url == "https://example.test/KRK"
 
 
 def test_prehled_ma_nejlevnejsi_nahore_pak_vsechny_od_nejlevnejsi():
@@ -85,10 +84,9 @@ def test_prehled_bez_letu():
 
     assert message.title == "Přehled"
     assert message.body.startswith("Zatím žádné lety.")
-    assert message.click_url is None
 
 
-def test_poplach_krici_ma_nejvyssi_prioritu_a_odkaz_na_nejlevnejsi():
+def test_poplach_krici_a_ma_nejvyssi_prioritu():
     offers = {
         "KRK 2027-05-13": offer("KRK", "2027-05-13", 1890),
         "VIE 2027-05-12": offer("VIE", "2027-05-12", 1990),
@@ -104,7 +102,7 @@ def test_poplach_krici_ma_nejvyssi_prioritu_a_odkaz_na_nejlevnejsi():
     assert "Další pod 2 000 Kč:" in message.body
     assert "Vídeň" in message.body
     assert "Praha" not in message.body  # 4 000 Kč není pod hranicí
-    assert message.click_url == "https://example.test/KRK"
+    assert "👉👉 KUP HNED na Kiwi 👈👈" in message.body
 
 
 def test_bezne_zpravy_maji_normalni_prioritu():

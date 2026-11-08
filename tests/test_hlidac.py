@@ -39,7 +39,7 @@ class FakeNotify:
         self.sent = []
         self.broken = broken
 
-    def __call__(self, topic, title, body, click=None, priority=3):
+    def __call__(self, topic, title, body, priority=3):
         if self.broken:
             raise OSError("vymyšlený výpadek ntfy")
         self.sent.append("🚨 POPLACH" if priority == 5 else title.split(" · ")[0])

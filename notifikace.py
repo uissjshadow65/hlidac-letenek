@@ -27,20 +27,17 @@ def build_request(
     title: str,
     message: str,
     tags: list[str] | None = None,
-    click: str | None = None,
     priority: int = PRIORITY_DEFAULT,
 ) -> urllib.request.Request:
     """Připraví HTTP požadavek pro ntfy (zatím nic neodesílá).
 
     Posíláme JSON, protože hlavičky HTTP neumí češtinu – JSON s UTF-8 ano.
-    `click` = odkaz, který se otevře po klepnutí na notifikaci.
     `priority` = 1 (nejnižší) až 5 (nejvyšší, poplach).
+    Bez odkazu ("click"): klepnutí na notifikaci jen otevře aplikaci ntfy.
     """
     if not topic:
         raise ValueError("Chybí název kanálu ntfy (proměnná prostředí NTFY_TOPIC).")
     payload = {"topic": topic, "title": title, "message": message, "tags": tags or [], "priority": priority}
-    if click:
-        payload["click"] = click
     return urllib.request.Request(
         NTFY_URL,
         data=json.dumps(payload).encode("utf-8"),
@@ -54,11 +51,10 @@ def send_notification(
     title: str,
     message: str,
     tags: list[str] | None = None,
-    click: str | None = None,
     priority: int = PRIORITY_DEFAULT,
 ) -> None:
     """Odešle notifikaci. Při chybě (výpadek sítě, ntfy nedostupné) vyhodí výjimku."""
-    request = build_request(topic, title, message, tags, click, priority)
+    request = build_request(topic, title, message, tags, priority)
     with urllib.request.urlopen(request, timeout=TIMEOUT_SECONDS) as response:
         if response.status != 200:
             raise RuntimeError(f"ntfy odpovědělo kódem {response.status}")

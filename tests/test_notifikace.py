@@ -22,12 +22,10 @@ def test_pozadavek_obsahuje_kanal_titulek_a_zpravu_v_utf8():
     }
 
 
-def test_odkaz_po_klepnuti_se_prida_jen_kdyz_je_zadany():
-    with_link = json.loads(notifikace.build_request("k", "T", "Z", click="https://example.test").data)
-    without_link = json.loads(notifikace.build_request("k", "T", "Z").data)
+def test_notifikace_nema_odkaz_klepnuti_jen_otevre_ntfy():
+    payload = json.loads(notifikace.build_request("k", "T", "Z", priority=notifikace.PRIORITY_MAX).data)
 
-    assert with_link["click"] == "https://example.test"
-    assert "click" not in without_link
+    assert "click" not in payload
 
 
 def test_chybejici_kanal_vyhodi_srozumitelnou_chybu():

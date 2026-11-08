@@ -11,8 +11,8 @@ from porovnani import Change, ChangeKind
 class Message:
     title: str
     body: str
-    click_url: str | None = None  # klepnutí na notifikaci otevře tento odkaz
     priority: int = 3  # 1–5, 5 = poplach
+    # Záměrně bez odkazu: klepnutí na notifikaci jen otevře aplikaci ntfy.
 
 
 def format_price(price: int) -> str:
@@ -88,11 +88,7 @@ def changes_message(changes: list[Change], offers: dict[str, Offer | None]) -> M
     best = cheapest(offers)
     lines = best_block(best) if best else []
     lines += ["Změny cen:"] + [format_change(change) for change in changes]
-    return Message(
-        title=title_with_best("💰 Změna ceny", best),
-        body="\n".join(lines),
-        click_url=best.url if best else None,
-    )
+    return Message(title=title_with_best("💰 Změna ceny", best), body="\n".join(lines))
 
 
 def overview_message(title: str, offers: dict[str, Offer | None], warning: str | None = None) -> Message:
@@ -111,7 +107,7 @@ def overview_message(title: str, offers: dict[str, Offer | None], warning: str |
     if without:
         lines += ["", "Bez letů: " + ", ".join(without)]
 
-    return Message(title=title_with_best(title, best), body="\n".join(lines), click_url=best.url if best else None)
+    return Message(title=title_with_best(title, best), body="\n".join(lines))
 
 
 def alert_message(offers: dict[str, Offer | None], limit: int) -> Message:
@@ -129,7 +125,7 @@ def alert_message(offers: dict[str, Offer | None], limit: int) -> Message:
         f"💰💰 {format_price(best.price_per_person)}/os. 💰💰",
         f"📍 {origin_name(best.origin)} {format_trip(best.return_date)} · {', '.join(best.airlines)}",
         "",
-        "👉👉 KUP HNED – klepni na zprávu 👈👈",
+        "👉👉 KUP HNED na Kiwi 👈👈",
     ]
     if len(below) > 1:
         lines += ["", f"Další pod {format_price(limit)}:"] + [format_offer(o) for o in below[1:]]
@@ -137,7 +133,6 @@ def alert_message(offers: dict[str, Offer | None], limit: int) -> Message:
     return Message(
         title=f"🚨🚨 POD {format_price(limit)}! {format_price(best.price_per_person)}/os. 🚨🚨",
         body="\n".join(lines),
-        click_url=best.url,
         priority=5,
     )
 

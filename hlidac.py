@@ -109,7 +109,7 @@ def run(state_path: Path, topic: str, now: datetime, get_offer=ceny.get_offer, n
 
     for message in messages:
         try:
-            notify(topic, message.title, message.body, click=message.click_url, priority=message.priority)
+            notify(topic, message.title, message.body, priority=message.priority)
             log.info("Odeslána notifikace: %s", message.title)
         except Exception as error:
             # Stav neukládáme – příští běh změnu najde znovu a zkusí ji poslat.
