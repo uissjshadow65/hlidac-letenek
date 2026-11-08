@@ -80,5 +80,6 @@
     }
   },
   "failing_since": null,
-  "last_daily_report": "2026-11-08"
+  "last_daily_report": "2026-11-08",
+  "alert_price": null
 }
