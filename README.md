@@ -30,7 +30,7 @@ zbývá jen jedno místo, uvidíš skutečnou cenu pro dva.
 | `notifikace.py` | odeslání do ntfy |
 | `stav.py` | uložení a načtení `ceny.json` |
 | `hlidac.py` | jeden celý běh |
-| `.github/workflows/hlidac.yml` | spouštění každou hodinu na GitHubu |
+| `.github/workflows/hlidac.yml` | běh na GitHubu; každou hodinu ho spouští cron-job.org přes GitHub API |
 | `ceny.json` | poslední známé ceny (ukládá ho GitHub po každém běhu) |
 
 ## Spuštění na vlastním PC (PowerShell)
@@ -45,7 +45,10 @@ $LASTEXITCODE                                 # 0 OK, 1 nešla notifikace, 2 chy
 ## Známé limity
 - Data jsou z Google Letů přes neoficiální knihovnu `fast-flights`. Když Google změní web,
   přijde varování ⚠️ a bude potřeba upravit `ceny.py`.
-- GitHub plánované běhy občas zpozdí nebo vynechá – kontrola je „zhruba každou hodinu“.
+- Vlastní plánování GitHubu (schedule) u tohoto repozitáře běhy vůbec nespouštělo, proto
+  hlídače spouští **cron-job.org** (každou hodinu, přes GitHub token s právem jen na Actions
+  tohoto repozitáře). Když spuštění selže, pošle cron-job.org e-mail.
+  **Token vyprší 1. 6. 2027** – do té doby stačí.
 - Google může dotazy ze serverů GitHubu blokovat. Pak chodí varování ⚠️.
 - GitHub vypne plánované běhy repozitáře bez aktivity po 60 dnech. Ranní přehled mění
   `ceny.json` každý den, takže by k tomu dojít nemělo.

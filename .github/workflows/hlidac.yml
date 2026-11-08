@@ -1,13 +1,11 @@
-# Hlídač letenek – spouští se každou hodinu na serverech GitHubu.
+# Hlídač letenek – běží na serverech GitHubu.
 name: Hlídač letenek
 
+# Spouštění: každou hodinu ho přes GitHub API spustí služba cron-job.org
+# (stejně jako tlačítko "Run workflow"). Vlastní plánování GitHubu (schedule)
+# záměrně nepoužíváme – u tohoto repozitáře běhy nespouštělo vůbec.
 on:
-  schedule:
-    # Každou hodinu ve 12. minutě. GitHub běh obvykle o pár minut zpozdí
-    # a samotná kontrola trvá ~1,5 min → zpráva dorazí zhruba kolem :22.
-    # (Celé hodiny :00 jsou na GitHubu nejvytíženější, proto ne :00.)
-    - cron: "12 * * * *"
-  workflow_dispatch: # tlačítko "Run workflow" pro ruční spuštění
+  workflow_dispatch:
 
 permissions:
   contents: write # aby mohl běh uložit ceny.json zpět do repozitáře
