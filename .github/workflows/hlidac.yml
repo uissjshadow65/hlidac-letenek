@@ -1,0 +1,51 @@
+# Hlídač letenek – spouští se každou hodinu na serverech GitHubu.
+name: Hlídač letenek
+
+on:
+  schedule:
+    # Každou hodinu v 17. minutě (UTC). Celé hodiny (:00) jsou na GitHubu
+    # nejvytíženější a běhy se tam zpožďují nejvíc.
+    - cron: "17 * * * *"
+  workflow_dispatch: # tlačítko "Run workflow" pro ruční spuštění
+
+permissions:
+  contents: write # aby mohl běh uložit ceny.json zpět do repozitáře
+
+concurrency:
+  group: hlidac # nikdy dva běhy najednou (přepisovaly by si ceny.json)
+  cancel-in-progress: false
+
+jobs:
+  hlidac:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Stáhnout kód
+        uses: actions/checkout@v5
+
+      - name: Nainstalovat Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.14"
+          cache: pip
+
+      - name: Nainstalovat knihovny
+        run: pip install -r requirements.txt
+
+      - name: Spustit hlídač
+        env:
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+        run: python hlidac.py
+
+      - name: Uložit ceny.json do repozitáře
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add ceny.json
+          if git diff --cached --quiet; then
+            echo "Ceny se nezměnily, není co ukládat."
+          else
+            git commit -m "Aktualizace cen"
+            git pull --rebase
+            git push
+          fi

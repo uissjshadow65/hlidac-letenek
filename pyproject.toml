@@ -1,0 +1,4 @@
+[tool.pytest.ini_options]
+# Testy najdou moduly v kořeni projektu (notifikace.py, …).
+pythonpath = ["."]
+testpaths = ["tests"]

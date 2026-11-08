@@ -1,0 +1,84 @@
+{
+  "offers": {
+    "BRQ 2027-05-12": null,
+    "BRQ 2027-05-13": null,
+    "BTS 2027-05-12": null,
+    "BTS 2027-05-13": null,
+    "KRK 2027-05-12": {
+      "origin": "KRK",
+      "return_date": "2027-05-12",
+      "price_per_person": 3307,
+      "airlines": [
+        "Ryanair"
+      ],
+      "url": "https://www.google.com/travel/flights/search?tfs=GhoSCjIwMjctMDUtMDhqBRIDS1JLcgUSA1BBUhoaEgoyMDI3LTA1LTEyagUSA1BBUnIFEgNLUktCAgEBSAGYAQE=&hl=cs&curr=CZK"
+    },
+    "KRK 2027-05-13": {
+      "origin": "KRK",
+      "return_date": "2027-05-13",
+      "price_per_person": 2656,
+      "airlines": [
+        "Ryanair"
+      ],
+      "url": "https://www.google.com/travel/flights/search?tfs=GhoSCjIwMjctMDUtMDhqBRIDS1JLcgUSA1BBUhoaEgoyMDI3LTA1LTEzagUSA1BBUnIFEgNLUktCAgEBSAGYAQE=&hl=cs&curr=CZK"
+    },
+    "KTW 2027-05-12": {
+      "origin": "KTW",
+      "return_date": "2027-05-12",
+      "price_per_person": 7092,
+      "airlines": [
+        "LOT"
+      ],
+      "url": "https://www.google.com/travel/flights/search?tfs=GhoSCjIwMjctMDUtMDhqBRIDS1RXcgUSA1BBUhoaEgoyMDI3LTA1LTEyagUSA1BBUnIFEgNLVFdCAgEBSAGYAQE=&hl=cs&curr=CZK"
+    },
+    "KTW 2027-05-13": {
+      "origin": "KTW",
+      "return_date": "2027-05-13",
+      "price_per_person": 6028,
+      "airlines": [
+        "LOT"
+      ],
+      "url": "https://www.google.com/travel/flights/search?tfs=GhoSCjIwMjctMDUtMDhqBRIDS1RXcgUSA1BBUhoaEgoyMDI3LTA1LTEzagUSA1BBUnIFEgNLVFdCAgEBSAGYAQE=&hl=cs&curr=CZK"
+    },
+    "OSR 2027-05-12": null,
+    "OSR 2027-05-13": null,
+    "PRG 2027-05-12": {
+      "origin": "PRG",
+      "return_date": "2027-05-12",
+      "price_per_person": 4488,
+      "airlines": [
+        "KLM"
+      ],
+      "url": "https://www.google.com/travel/flights/search?tfs=GhoSCjIwMjctMDUtMDhqBRIDUFJHcgUSA1BBUhoaEgoyMDI3LTA1LTEyagUSA1BBUnIFEgNQUkdCAgEBSAGYAQE=&hl=cs&curr=CZK"
+    },
+    "PRG 2027-05-13": {
+      "origin": "PRG",
+      "return_date": "2027-05-13",
+      "price_per_person": 4488,
+      "airlines": [
+        "KLM"
+      ],
+      "url": "https://www.google.com/travel/flights/search?tfs=GhoSCjIwMjctMDUtMDhqBRIDUFJHcgUSA1BBUhoaEgoyMDI3LTA1LTEzagUSA1BBUnIFEgNQUkdCAgEBSAGYAQE=&hl=cs&curr=CZK"
+    },
+    "VIE 2027-05-12": {
+      "origin": "VIE",
+      "return_date": "2027-05-12",
+      "price_per_person": 3846,
+      "airlines": [
+        "Ryanair"
+      ],
+      "url": "https://www.google.com/travel/flights/search?tfs=GhoSCjIwMjctMDUtMDhqBRIDVklFcgUSA1BBUhoaEgoyMDI3LTA1LTEyagUSA1BBUnIFEgNWSUVCAgEBSAGYAQE=&hl=cs&curr=CZK"
+    },
+    "VIE 2027-05-13": {
+      "origin": "VIE",
+      "return_date": "2027-05-13",
+      "price_per_person": 3627,
+      "airlines": [
+        "Ryanair"
+      ],
+      "url": "https://www.google.com/travel/flights/search?tfs=GhoSCjIwMjctMDUtMDhqBRIDVklFcgUSA1BBUhoaEgoyMDI3LTA1LTEzagUSA1BBUnIFEgNWSUVCAgEBSAGYAQE=&hl=cs&curr=CZK"
+    }
+  },
+  "failing_since": null,
+  "last_daily_report": "2026-11-08"
+}
