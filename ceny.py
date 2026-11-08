@@ -69,8 +69,13 @@ def extract_prices(html: str) -> list[tuple[int, tuple[str, ...]]]:
     match = re.search(r'<script[^>]*class="ds:1"[^>]*>(.*?)</script>', html, re.S)
     if not match:
         raise PriceFetchError("Google nevrátil výsledky hledání (možná stránka se souhlasem nebo blokace).")
+    script = match.group(1)
+    if "errorHasStatus: true" in script:
+        # Google občas místo výsledků vrátí chybový stav. Bereme to jako selhaný dotaz
+        # (ne jako "žádný let"), jinak by přišel falešný poplach "let zmizel".
+        raise PriceFetchError("Google vrátil u tohoto dotazu chybový stav, zkusí se příště.")
     try:
-        data = match.group(1).split("data:", 1)[1].rsplit(", sideChannel", 1)[0]
+        data = script.split("data:", 1)[1].rsplit(", sideChannel", 1)[0]
         payload = json.loads(data)
         prices = []
         for section in (payload[2], payload[3]):

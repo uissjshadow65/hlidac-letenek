@@ -75,6 +75,13 @@ def test_stranka_se_souhlasem_vyhodi_pricefetcherror():
         ceny.get_offer("PRG", "2027-05-12", fetch=fake_fetch)
 
 
+def test_chybovy_stav_googlu_je_selhany_dotaz_ne_zadny_let():
+    page = '<script class="ds:1">AF_initDataCallback({data:[null], errorHasStatus: true, sideChannel: {}});</script>'
+
+    with pytest.raises(ceny.PriceFetchError, match="chybový stav"):
+        ceny.extract_prices(page)
+
+
 def test_zmena_struktury_stranky_vyhodi_pricefetcherror():
     broken = '<script class="ds:1">AF_initDataCallback({data:[1, 2], sideChannel: {}});</script>'
 
