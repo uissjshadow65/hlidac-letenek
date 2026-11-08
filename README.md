@@ -12,7 +12,8 @@ zbývá jen jedno místo, uvidíš skutečnou cenu pro dva.
 |---|---|
 | 🚨🚨 POD 2 000 Kč! | cena za osobu klesne pod `ALERT_PRICE_PER_PERSON` – nejvyšší priorita; znovu jen při dalším zlevnění |
 | Hlídač letenek spuštěn ✈️ | první běh, přehled všech cen |
-| Změna ceny letenek do Paříže | při každé změně (souhrn všech změn v jednom běhu) |
+| 💰 Změna ceny · od … Kč/os. | při každé změně (souhrn všech změn v jednom běhu) |
+| 🕐 Hodinová kontrola · od … Kč/os. | každou hodinu (kolem :22), když se nic nezměnilo – nejlevnější nabídka |
 | Ranní přehled letenek ☀️ | jednou denně, první běh po 8:00 – zároveň potvrzení, že hlídač žije |
 | ⚠️ Hlídač letenek nefunguje | když neprojde žádný dotaz (jen jednou, ne každou hodinu) |
 | ✅ Hlídač letenek zase funguje | po výpadku |

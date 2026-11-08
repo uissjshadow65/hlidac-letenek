@@ -77,6 +77,8 @@ def run(state_path: Path, topic: str, now: datetime, get_offer=ceny.get_offer, n
 
     new_offers, failed = check_all(get_offer, sleep)
     log.info("Zjištěno %d kombinací, selhalo %d.", len(new_offers), failed)
+    price_message_sent = False  # poslala se v tomto běhu už zpráva s cenami?
+    alert = None
 
     if not new_offers:
         # Neprošel ani jeden dotaz → varování, ale jen poprvé (ne každou hodinu).
@@ -91,11 +93,11 @@ def run(state_path: Path, topic: str, now: datetime, get_offer=ceny.get_offer, n
         state.offers.update(new_offers)  # selhané kombinace si nechají minulou cenu
         if first_run:
             messages.append(zpravy.overview_message("✈️ Hlídač spuštěn", state.offers))
+            price_message_sent = True
         elif changes:
             messages.append(zpravy.changes_message(changes, state.offers))
+            price_message_sent = True
         alert = check_alert(state)
-        if alert:
-            messages.append(alert)  # poslední = v mobilu nahoře
 
     today = now.date().isoformat()
     if now.hour >= nastaveni.DAILY_REPORT_HOUR and state.last_daily_report != today:
@@ -105,7 +107,16 @@ def run(state_path: Path, topic: str, now: datetime, get_offer=ceny.get_offer, n
                 since = datetime.fromisoformat(state.failing_since)
                 warning = f"⚠️ Ceny se nedaří zjistit od {since:%d. %m. %H:%M} – údaje můžou být staré."
             messages.append(zpravy.overview_message("☀️ Ranní přehled", state.offers, warning))
+            price_message_sent = True
         state.last_daily_report = today
+
+    # Hodinová zpráva: každý úspěšný běh pošle aktuální nejlevnější cenu,
+    # i když se nic nezměnilo (pokud už neodešla jiná zpráva s cenami).
+    if new_offers and not price_message_sent:
+        messages.append(zpravy.hourly_message(state.offers))
+
+    if alert:
+        messages.append(alert)  # poplach poslední = v mobilu úplně nahoře
 
     for message in messages:
         try:

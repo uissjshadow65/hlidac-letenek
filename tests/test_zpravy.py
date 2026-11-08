@@ -109,3 +109,25 @@ def test_bezne_zpravy_maji_normalni_prioritu():
     message = zpravy.overview_message("☀️ Ranní přehled", {"PRG 2027-05-12": offer("PRG", "2027-05-12", 4000)})
 
     assert message.priority == 3
+
+
+def test_hodinova_kontrola_ukaze_nejlevnejsi_a_ze_se_nic_nezmenilo():
+    offers = {"KRK 2027-05-13": offer("KRK", "2027-05-13", 2656), "PRG 2027-05-12": offer("PRG", "2027-05-12", 4488)}
+
+    message = zpravy.hourly_message(offers)
+
+    assert message.title == "🕐 Hodinová kontrola · od 2 656 Kč/os."
+    assert message.body.split("\n") == [
+        "🏆 NEJLEVNĚJŠÍ TEĎ",
+        "💰 2 656 Kč/os.",
+        "📍 Krakov 8.–13. 5. · Vymyšlené aerolinky",
+        "",
+        "Beze změny od minulé kontroly.",
+    ]
+
+
+def test_hodinova_kontrola_bez_letu():
+    message = zpravy.hourly_message({"BTS 2027-05-12": None})
+
+    assert message.title == "🕐 Hodinová kontrola"
+    assert message.body.startswith("Zatím žádné lety.")

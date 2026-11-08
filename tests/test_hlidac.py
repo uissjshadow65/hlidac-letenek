@@ -58,13 +58,22 @@ def test_prvni_beh_posle_prehled_a_ulozi_vsech_14_kombinaci(tmp_path):
     assert len(load_state(tmp_path / "ceny.json").offers) == 14
 
 
-def test_beze_zmeny_ceny_neprijde_nic(tmp_path):
+def test_beze_zmeny_ceny_prijde_hodinova_kontrola(tmp_path):
     run(tmp_path, FakeGoogle(), FakeNotify())
     notify = FakeNotify()
 
     run(tmp_path, FakeGoogle(), notify)
 
-    assert notify.sent == []
+    assert notify.sent == ["🕐 Hodinová kontrola"]
+
+
+def test_pri_zmene_ceny_hodinova_kontrola_neprijde_navic(tmp_path):
+    run(tmp_path, FakeGoogle(), FakeNotify())
+    notify = FakeNotify()
+
+    run(tmp_path, FakeGoogle({"VIE 2027-05-12": 2900}), notify)
+
+    assert notify.sent == ["💰 Změna ceny"]
 
 
 def test_zmena_ceny_posle_jednu_souhrnnou_zpravu(tmp_path):
@@ -95,7 +104,7 @@ def test_po_vypadku_prijde_zprava_ze_zase_funguje(tmp_path):
 
     run(tmp_path, FakeGoogle(), notify)
 
-    assert notify.sent == ["✅ Hlídač letenek zase funguje"]
+    assert notify.sent == ["✅ Hlídač letenek zase funguje", "🕐 Hodinová kontrola"]
     assert load_state(tmp_path / "ceny.json").failing_since is None
 
 
@@ -118,7 +127,7 @@ def test_selhani_jedne_kombinace_neni_let_zmizel(tmp_path):
     notify = FakeNotify()
     run(tmp_path, google_failing_for_prague, notify)
 
-    assert notify.sent == []
+    assert notify.sent == ["🕐 Hodinová kontrola"]
 
 
 def test_neocekavana_chyba_u_jedne_kombinace_neshodi_beh(tmp_path):
@@ -138,8 +147,8 @@ def test_ranni_prehled_prijde_jednou_denne(tmp_path):
     run(tmp_path, FakeGoogle(), morning, now=MORNING)
     run(tmp_path, FakeGoogle(), later, now=MORNING.replace(hour=10))
 
-    assert morning.sent == ["☀️ Ranní přehled"]
-    assert later.sent == []
+    assert morning.sent == ["☀️ Ranní přehled"]  # ranní přehled nahradí hodinovou kontrolu
+    assert later.sent == ["🕐 Hodinová kontrola"]
 
 
 def test_prvni_beh_rano_neposle_prehled_dvakrat(tmp_path):
@@ -203,7 +212,7 @@ def test_poplach_se_neopakuje_kazdou_hodinu(tmp_path):
 
     run(tmp_path, FakeGoogle({"KRK 2027-05-13": 1990}), notify)
 
-    assert notify.sent == []
+    assert notify.sent == ["🕐 Hodinová kontrola"]  # bez dalšího poplachu
 
 
 def test_dalsi_zlevneni_pod_hranici_posle_poplach_znovu(tmp_path):

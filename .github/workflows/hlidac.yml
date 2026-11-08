@@ -3,9 +3,10 @@ name: Hlídač letenek
 
 on:
   schedule:
-    # Každou hodinu v 17. minutě (UTC). Celé hodiny (:00) jsou na GitHubu
-    # nejvytíženější a běhy se tam zpožďují nejvíc.
-    - cron: "17 * * * *"
+    # Každou hodinu ve 12. minutě. GitHub běh obvykle o pár minut zpozdí
+    # a samotná kontrola trvá ~1,5 min → zpráva dorazí zhruba kolem :22.
+    # (Celé hodiny :00 jsou na GitHubu nejvytíženější, proto ne :00.)
+    - cron: "12 * * * *"
   workflow_dispatch: # tlačítko "Run workflow" pro ruční spuštění
 
 permissions:

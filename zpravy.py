@@ -110,6 +110,14 @@ def overview_message(title: str, offers: dict[str, Offer | None], warning: str |
     return Message(title=title_with_best(title, best), body="\n".join(lines))
 
 
+def hourly_message(offers: dict[str, Offer | None]) -> Message:
+    """Hodinová zpráva, když se ceny nezměnily: jen nejlevnější nabídka."""
+    best = cheapest(offers)
+    lines = best_block(best)[:-1] if best else ["Zatím žádné lety."]  # bez dělicí čáry, nic pod ní není
+    lines += ["", "Beze změny od minulé kontroly."]
+    return Message(title=title_with_best("🕐 Hodinová kontrola", best), body="\n".join(lines))
+
+
 def alert_message(offers: dict[str, Offer | None], limit: int) -> Message:
     """🚨 Poplach: nejlevnější cena je pod hranicí. Má křičet – nejvyšší priorita, hodně emoji."""
     below = sorted(
