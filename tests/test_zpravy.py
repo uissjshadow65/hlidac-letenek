@@ -38,17 +38,24 @@ def test_radek_novy_let_a_zmizely_let():
     assert zpravy.format_change(gone) == "❌ Katovice 8.–12. 5.: let už není v nabídce (byl 6 000 Kč/os.)"
 
 
-def test_souhrnna_zprava_ukaze_nejlevnejsi_a_odkaz_na_nej():
+def test_souhrnna_zprava_ma_nejlevnejsi_v_titulku_i_nahore():
     offers = {"VIE 2027-05-12": offer("VIE", "2027-05-12", 1963), "KRK 2027-05-13": offer("KRK", "2027-05-13", 1800)}
     changes = [Change(ChangeKind.CHEAPER, "VIE 2027-05-12", offer("VIE", "2027-05-12", 2113), offers["VIE 2027-05-12"])]
 
     message = zpravy.changes_message(changes, offers)
 
-    assert message.body.endswith("Nejlevnější teď: Krakov 8.–13. 5.: 1 800 Kč/os. (Vymyšlené aerolinky)")
+    assert message.title == "💰 Změna ceny · od 1 800 Kč/os."
+    assert message.body.split("\n")[:4] == [
+        "🏆 NEJLEVNĚJŠÍ TEĎ",
+        "💰 1 800 Kč/os.",
+        "📍 Krakov 8.–13. 5. · Vymyšlené aerolinky",
+        zpravy.SEPARATOR,
+    ]
+    assert message.body.split("\n")[4:] == ["Změny cen:", "📉 Vídeň 8.–12. 5.: 1 963 Kč/os. (Vymyšlené aerolinky), −150 Kč"]
     assert message.click_url == "https://example.test/KRK"
 
 
-def test_prehled_seradi_od_nejlevnejsi_a_vypise_letiste_bez_letu():
+def test_prehled_ma_nejlevnejsi_nahore_pak_vsechny_od_nejlevnejsi():
     offers = {
         "PRG 2027-05-12": offer("PRG", "2027-05-12", 4000),
         "KRK 2027-05-12": offer("KRK", "2027-05-12", 2000),
@@ -56,11 +63,14 @@ def test_prehled_seradi_od_nejlevnejsi_a_vypise_letiste_bez_letu():
         "BTS 2027-05-13": None,
     }
 
-    message = zpravy.overview_message("Přehled", offers)
+    message = zpravy.overview_message("☀️ Ranní přehled", offers)
 
     lines = message.body.split("\n")
-    assert lines[0].startswith("Krakov")
-    assert lines[1].startswith("Praha")
+    assert message.title == "☀️ Ranní přehled · od 2 000 Kč/os."
+    assert lines[0] == "🏆 NEJLEVNĚJŠÍ TEĎ"
+    assert lines[4] == "Všechny ceny:"
+    assert lines[5].startswith("Krakov")
+    assert lines[6].startswith("Praha")
     assert lines[-1] == "Bez letů: Bratislava"
 
 
@@ -73,5 +83,6 @@ def test_prehled_s_varovanim_ho_da_na_zacatek():
 def test_prehled_bez_letu():
     message = zpravy.overview_message("Přehled", {"BTS 2027-05-12": None})
 
+    assert message.title == "Přehled"
     assert message.body.startswith("Zatím žádné lety.")
     assert message.click_url is None

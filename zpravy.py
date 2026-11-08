@@ -59,14 +59,36 @@ def cheapest(offers: dict[str, Offer | None]) -> Offer | None:
     return min(available, key=lambda offer: offer.price_per_person) if available else None
 
 
+SEPARATOR = "━━━━━━━━━━━━━━"
+
+
+def title_with_best(prefix: str, best: Offer | None) -> str:
+    """Titulek s nejlevnější cenou hned na začátku, aby byla vidět i na zamčené obrazovce.
+
+    Např. "💰 Změna ceny · od 1 990 Kč/os."
+    """
+    if best is None:
+        return prefix
+    return f"{prefix} · od {format_price(best.price_per_person)}/os."
+
+
+def best_block(best: Offer) -> list[str]:
+    """Zvýrazněný blok s nejlevnější nabídkou – vždy úplně nahoře ve zprávě."""
+    return [
+        "🏆 NEJLEVNĚJŠÍ TEĎ",
+        f"💰 {format_price(best.price_per_person)}/os.",
+        f"📍 {origin_name(best.origin)} {format_trip(best.return_date)} · {', '.join(best.airlines)}",
+        SEPARATOR,
+    ]
+
+
 def changes_message(changes: list[Change], offers: dict[str, Offer | None]) -> Message:
-    """Souhrnná zpráva o všech změnách v jednom běhu."""
+    """Souhrnná zpráva o všech změnách v jednom běhu. Nejlevnější nabídka je nahoře."""
     best = cheapest(offers)
-    lines = [format_change(change) for change in changes]
-    if best:
-        lines += ["", f"Nejlevnější teď: {format_offer(best)}"]
+    lines = best_block(best) if best else []
+    lines += ["Změny cen:"] + [format_change(change) for change in changes]
     return Message(
-        title="Změna ceny letenek do Paříže",
+        title=title_with_best("💰 Změna ceny", best),
         body="\n".join(lines),
         click_url=best.url if best else None,
     )
@@ -75,7 +97,10 @@ def changes_message(changes: list[Change], offers: dict[str, Offer | None]) -> M
 def overview_message(title: str, offers: dict[str, Offer | None], warning: str | None = None) -> Message:
     """Přehled všech kombinací od nejlevnější (ranní hlášení a první spuštění)."""
     available = sorted((o for o in offers.values() if o is not None), key=lambda o: o.price_per_person)
+    best = available[0] if available else None
     lines = [warning, ""] if warning else []
+    if best:
+        lines += best_block(best) + ["Všechny ceny:"]
     lines += [format_offer(offer) for offer in available] or ["Zatím žádné lety."]
 
     # Letiště, odkud nevede žádný let pro žádné datum návratu.
@@ -85,7 +110,7 @@ def overview_message(title: str, offers: dict[str, Offer | None], warning: str |
     if without:
         lines += ["", "Bez letů: " + ", ".join(without)]
 
-    return Message(title=title, body="\n".join(lines), click_url=available[0].url if available else None)
+    return Message(title=title_with_best(title, best), body="\n".join(lines), click_url=best.url if best else None)
 
 
 def failure_message(failed: int) -> Message:

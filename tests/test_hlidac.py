@@ -29,7 +29,10 @@ class FakeGoogle:
 
 
 class FakeNotify:
-    """Místo odeslání do mobilu si zprávy jen zapamatuje."""
+    """Místo odeslání do mobilu si zprávy jen zapamatuje.
+
+    Ukládá jen začátek titulku (před " · od …"), cena se v testech mění.
+    """
 
     def __init__(self, broken=False):
         self.sent = []
@@ -38,7 +41,7 @@ class FakeNotify:
     def __call__(self, topic, title, body, click=None):
         if self.broken:
             raise OSError("vymyšlený výpadek ntfy")
-        self.sent.append(title)
+        self.sent.append(title.split(" · ")[0])
 
 
 def run(tmp_path, google, notify, now=NIGHT):
@@ -50,7 +53,7 @@ def test_prvni_beh_posle_prehled_a_ulozi_vsech_14_kombinaci(tmp_path):
 
     assert run(tmp_path, FakeGoogle(), notify) == 0
 
-    assert notify.sent == ["Hlídač letenek spuštěn ✈️"]
+    assert notify.sent == ["✈️ Hlídač spuštěn"]
     assert len(load_state(tmp_path / "ceny.json").offers) == 14
 
 
@@ -69,7 +72,7 @@ def test_zmena_ceny_posle_jednu_souhrnnou_zpravu(tmp_path):
 
     run(tmp_path, FakeGoogle({"VIE 2027-05-12": 2850, "KRK 2027-05-13": 3100}), notify)
 
-    assert notify.sent == ["Změna ceny letenek do Paříže"]
+    assert notify.sent == ["💰 Změna ceny"]
     assert load_state(tmp_path / "ceny.json").offers["VIE 2027-05-12"].price_per_person == 2850
 
 
@@ -134,7 +137,7 @@ def test_ranni_prehled_prijde_jednou_denne(tmp_path):
     run(tmp_path, FakeGoogle(), morning, now=MORNING)
     run(tmp_path, FakeGoogle(), later, now=MORNING.replace(hour=10))
 
-    assert morning.sent == ["Ranní přehled letenek ☀️"]
+    assert morning.sent == ["☀️ Ranní přehled"]
     assert later.sent == []
 
 
@@ -143,7 +146,7 @@ def test_prvni_beh_rano_neposle_prehled_dvakrat(tmp_path):
 
     run(tmp_path, FakeGoogle(), notify, now=MORNING)
 
-    assert notify.sent == ["Hlídač letenek spuštěn ✈️"]
+    assert notify.sent == ["✈️ Hlídač spuštěn"]
 
 
 def test_kdyz_notifikace_selze_stav_se_neulozi(tmp_path):

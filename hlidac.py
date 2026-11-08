@@ -73,7 +73,7 @@ def run(state_path: Path, topic: str, now: datetime, get_offer=ceny.get_offer, n
         changes = compare(state.offers, new_offers)
         state.offers.update(new_offers)  # selhané kombinace si nechají minulou cenu
         if first_run:
-            messages.append(zpravy.overview_message("Hlídač letenek spuštěn ✈️", state.offers))
+            messages.append(zpravy.overview_message("✈️ Hlídač spuštěn", state.offers))
         elif changes:
             messages.append(zpravy.changes_message(changes, state.offers))
 
@@ -84,7 +84,7 @@ def run(state_path: Path, topic: str, now: datetime, get_offer=ceny.get_offer, n
             if state.failing_since:
                 since = datetime.fromisoformat(state.failing_since)
                 warning = f"⚠️ Ceny se nedaří zjistit od {since:%d. %m. %H:%M} – údaje můžou být staré."
-            messages.append(zpravy.overview_message("Ranní přehled letenek ☀️", state.offers, warning))
+            messages.append(zpravy.overview_message("☀️ Ranní přehled", state.offers, warning))
         state.last_daily_report = today
 
     for message in messages:
