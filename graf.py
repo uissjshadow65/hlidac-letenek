@@ -48,8 +48,24 @@ def trend_line(history: list[dict], now: datetime) -> str | None:
     return f"{icon} Za {nastaveni.TREND_HOURS} h: {change}, {format_price(before)} → {format_price(after)}/os."
 
 
+# Barvy ve stylu telemetrie: tmavý podklad, svítivé stopy.
+BACKGROUND = "#0b0f14"
+PANEL = "#11161d"
+GRID = "#243040"
+TEXT = "#c9d4e0"
+TRACE_COLORS = ["#00e5ff", "#ff2bd6", "#39ff14", "#ffb000", "#8a7dff", "#ff5c5c", "#00ffa8"]
+BEST_COLOR = "#ffffff"
+FASTER = "#39ff14"  # zlevnění = zelená (jako rychlejší kolo)
+SLOWER = "#ff3b3b"  # zdražení = červená
+
+
 def chart_png(history: list[dict]) -> bytes | None:
-    """Nakreslí graf vývoje cen. Vrátí PNG, nebo None, když ještě nejsou aspoň 2 body."""
+    """Nakreslí graf ve stylu telemetrie z auta. Vrátí PNG, nebo None, když nejsou aspoň 2 body.
+
+    Nahoře: stopy všech letišť přes sebe, nejlevnější svítí bíle.
+    Dole: delta stopa – o kolik je nejlevnější cena jinde než na začátku grafu
+    (pod nulou zeleně = zlevnilo, nad nulou červeně = zdražilo).
+    """
     points = [e for e in history if e["prices"]]
     if len(points) < 2:
         return None
@@ -58,41 +74,79 @@ def chart_png(history: list[dict]) -> bytes | None:
 
     matplotlib.use("Agg")  # kreslí rovnou do souboru, bez okna
     import matplotlib.dates as mdates
+    import matplotlib.patheffects as effects
     import matplotlib.pyplot as plt
+    import matplotlib.transforms
+    from matplotlib.ticker import FuncFormatter
 
     times = [datetime.fromisoformat(e["time"]) for e in points]
-    figure, axes = plt.subplots(figsize=(10, 6), dpi=110)
-
-    # Tenké čáry: každé letiště zvlášť.
-    for origin, name in nastaveni.ORIGINS.items():
-        prices = [e["prices"].get(origin) for e in points]
-        if any(p is not None for p in prices):
-            axes.plot(times, [float("nan") if p is None else p for p in prices], linewidth=1.2, alpha=0.6, label=name)
-
-    # Tlustá čára: nejlevnější ze všech – to je ten hlavní trend.
     cheapest = [cheapest_at(e) for e in points]
-    axes.plot(times, cheapest, color="black", linewidth=3, label="Nejlevnější", zorder=5)
-    axes.annotate(
-        format_price(cheapest[-1]),
-        (times[-1], cheapest[-1]),
-        textcoords="offset points",
-        xytext=(6, -4),
-        fontsize=11,
-        fontweight="bold",
+    delta = [price - cheapest[0] for price in cheapest]
+    thousands = FuncFormatter(lambda v, _: f"{v:,.0f}".replace(",", " "))
+
+    figure, (top, bottom) = plt.subplots(
+        2, 1, figsize=(10, 7), dpi=110, sharex=True, gridspec_kw={"height_ratios": [3, 1], "hspace": 0.08}
     )
+    figure.patch.set_facecolor(BACKGROUND)
+    for axes in (top, bottom):
+        axes.set_facecolor(PANEL)
+        axes.grid(True, color=GRID, linewidth=0.7)
+        axes.tick_params(colors=TEXT, labelsize=9)
+        for spine in axes.spines.values():
+            spine.set_color(GRID)
+        axes.yaxis.set_major_formatter(thousands)
+        axes.yaxis.tick_right()  # čísla vpravo jako na displeji
+
+    # Stopy letišť přes sebe; jméno a cena na konci každé stopy místo legendy.
+    labels = []
+    for (origin, name), color in zip(nastaveni.ORIGINS.items(), TRACE_COLORS):
+        prices = [e["prices"].get(origin) for e in points]
+        if all(p is None for p in prices):
+            continue
+        values = [float("nan") if p is None else p for p in prices]
+        line, = top.plot(times, values, color=color, linewidth=1.6, alpha=0.9)
+        line.set_path_effects([effects.Stroke(linewidth=6, alpha=0.15, foreground=color), effects.Normal()])
+        last = next((p for p in reversed(prices) if p is not None), None)
+        if last is not None:
+            labels.append((last, f"{name} {format_price(last)}", color))
+
+    # Nejlevnější: bílá svítící stopa, čárkovaně, ať je vidět i letiště pod ní.
+    best, = top.plot(times, cheapest, color=BEST_COLOR, linewidth=2.2, linestyle=(0, (4, 2)), zorder=5)
+    best.set_path_effects([effects.Stroke(linewidth=9, alpha=0.2, foreground=BEST_COLOR), effects.Normal()])
 
     limit = nastaveni.ALERT_PRICE_PER_PERSON
-    axes.axhline(limit, color="red", linestyle="--", linewidth=1.5, label=f"Poplach ({format_price(limit)})")
+    top.axhline(limit, color=SLOWER, linestyle=":", linewidth=1.4)
+    top.text(times[0], limit, f" POPLACH {format_price(limit)}", color=SLOWER, fontsize=8, va="bottom")
 
-    axes.set_title("Vývoj cen letenek do Paříže (Kč za osobu)", fontsize=14)
-    axes.yaxis.set_major_formatter(matplotlib.ticker.FuncFormatter(lambda v, _: f"{v:,.0f}".replace(",", " ")))
-    axes.xaxis.set_major_formatter(mdates.DateFormatter("%d. %m.\n%H:%M", tz=times[-1].tzinfo))
-    axes.grid(True, alpha=0.3)
-    axes.legend(loc="upper left", bbox_to_anchor=(1.01, 1), fontsize=10)
-    figure.tight_layout()
+    # Popisky na konci stop (vpravo za grafem), rozestrčené, ať se nepřekrývají.
+    low, high = top.get_ylim()
+    gap = (high - low) * 0.06
+    beside = matplotlib.transforms.blended_transform_factory(top.transAxes, top.transData)
+    previous = None
+    for value, text, color in sorted(labels):
+        y = value if previous is None else max(value, previous + gap)
+        previous = y
+        top.text(1.09, y, text, transform=beside, color=color, fontsize=9, va="center")
+    figure.subplots_adjust(left=0.03, right=0.70, top=0.9, bottom=0.1)
+
+    # Delta stopa.
+    bottom.axhline(0, color=TEXT, linewidth=0.8, alpha=0.6)
+    bottom.fill_between(times, delta, 0, where=[d <= 0 for d in delta], color=FASTER, alpha=0.25, interpolate=True)
+    bottom.fill_between(times, delta, 0, where=[d >= 0 for d in delta], color=SLOWER, alpha=0.25, interpolate=True)
+    bottom.plot(times, delta, color=FASTER if delta[-1] <= 0 else SLOWER, linewidth=1.8)
+    bottom.set_ylabel("Δ Kč", color=TEXT, fontsize=9)
+    sign = "−" if delta[-1] < 0 else "+"
+    bottom.text(1.09, 0.5, f"Δ {sign}{format_price(abs(delta[-1]))}", transform=bottom.transAxes,
+                color=FASTER if delta[-1] <= 0 else SLOWER, fontsize=12, fontweight="bold", va="center")
+    bottom.xaxis.set_major_formatter(mdates.DateFormatter("%d. %m.\n%H:%M", tz=times[-1].tzinfo))
+
+    # Hlavička jako na displeji: nejlevnější cena velkým písmem.
+    figure.text(0.03, 0.95, "LETENKY → PAŘÍŽ  |  KČ ZA OSOBU", color=TEXT, fontsize=10, family="monospace")
+    figure.text(0.70, 0.95, f"BEST {format_price(cheapest[-1])}", color=BEST_COLOR, fontsize=16,
+                fontweight="bold", family="monospace", ha="right")
 
     buffer = io.BytesIO()
-    figure.savefig(buffer, format="png")
+    figure.savefig(buffer, format="png", facecolor=BACKGROUND)
     plt.close(figure)
     return buffer.getvalue()
 
