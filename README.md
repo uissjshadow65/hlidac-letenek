@@ -14,6 +14,7 @@ zbývá jen jedno místo, uvidíš skutečnou cenu pro dva.
 | Hlídač letenek spuštěn ✈️ | první běh, přehled všech cen |
 | 💰 Změna ceny · od … Kč/os. | při každé změně (souhrn všech změn v jednom běhu) |
 | 🕐 Hodinová kontrola · od … Kč/os. | každou hodinu (kolem :22), když se nic nezměnilo – nejlevnější nahoře + ceny ze všech letišť |
+| 📈 graf ve zprávě | jednou za 6 hodin se ke zprávě s cenami přiloží graf vývoje (každé letiště + tlustě nejlevnější, červeně hranice poplachu) a nahoře řádek s trendem za 24 h |
 | Ranní přehled letenek ☀️ | jednou denně, první běh po 8:00 – zároveň potvrzení, že hlídač žije |
 | ⚠️ Hlídač letenek nefunguje | když neprojde žádný dotaz (jen jednou, ne každou hodinu) |
 | ✅ Hlídač letenek zase funguje | po výpadku |
@@ -30,11 +31,12 @@ poplach s nejvyšší. Nastavuje se v `nastaveni.py`.
 | `ceny.py` | dotaz na Google Lety a výběr nejlevnějšího letu |
 | `porovnani.py` | co se změnilo od minula |
 | `zpravy.py` | texty notifikací |
+| `graf.py` | historie cen, graf vývoje a trend za 24 h |
 | `notifikace.py` | odeslání do ntfy |
 | `stav.py` | uložení a načtení `ceny.json` |
 | `hlidac.py` | jeden celý běh |
 | `.github/workflows/hlidac.yml` | běh na GitHubu; každou hodinu ho spouští cron-job.org přes GitHub API |
-| `ceny.json` | poslední známé ceny (ukládá ho GitHub po každém běhu) |
+| `ceny.json` | poslední známé ceny a historie za 30 dní pro graf (ukládá ho GitHub po každém běhu) |
 
 ## Spuštění na vlastním PC (PowerShell)
 ```powershell

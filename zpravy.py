@@ -13,6 +13,7 @@ class Message:
     body: str
     priority: int = nastaveni.PRIORITY_IMPORTANT  # 1–5, 5 = poplach
     # Záměrně bez odkazu: klepnutí na notifikaci jen otevře aplikaci ntfy.
+    chart: bytes | None = None  # 📈 obrázek grafu (PNG), přiloží se ke zprávě
 
 
 def format_price(price: int) -> str:

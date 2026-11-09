@@ -18,7 +18,10 @@ from datetime import datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
+from dataclasses import replace
+
 import ceny
+import graf
 import nastaveni
 import notifikace
 import zpravy
@@ -72,6 +75,15 @@ def check_alert(state) -> zpravy.Message | None:
         return None  # o téhle (nebo nižší) ceně už víš
     state.alert_price = best.price_per_person
     return zpravy.alert_message(state.offers, limit)
+
+
+def make_chart(history: list[dict]) -> bytes | None:
+    """Graf nesmí shodit běh – když se nepovede nakreslit, zpráva odejde bez něj."""
+    try:
+        return graf.chart_png(history)
+    except Exception as error:
+        log.warning("Graf se nepodařilo nakreslit: %s", error)
+        return None
 
 
 def run(
@@ -138,12 +150,29 @@ def run(
     if new_offers and not price_message_sent:
         messages.append(zpravy.hourly_message(state.offers))
 
+    if new_offers:
+        state.history = graf.add_to_history(state.history, now, state.offers)
+
+    # 📈 Jednou za pár hodin přiložíme ke zprávě s cenami graf vývoje a trend za poslední den.
+    if new_offers and graf.chart_due(state.last_chart, now):
+        index = len(messages) - 1  # zpráva s cenami je v tuhle chvíli vždy poslední
+        chart = make_chart(state.history)
+        if chart is not None:
+            message = messages[index]
+            trend = graf.trend_line(state.history, now)
+            body = f"{trend}\n\n{message.body}" if trend else message.body
+            messages[index] = replace(message, body=body, chart=chart)
+            state.last_chart = now.isoformat(timespec="minutes")
+
     if alert:
         messages.append(alert)  # poplach poslední = v mobilu úplně nahoře
 
     for message in messages:
         try:
-            notify(topic, message.title, message.body, priority=message.priority)
+            if message.chart is not None:
+                notify(topic, message.title, message.body, priority=message.priority, attachment=message.chart)
+            else:
+                notify(topic, message.title, message.body, priority=message.priority)
             log.info("Odeslána notifikace: %s", message.title)
         except Exception as error:
             # Stav neukládáme – příští běh změnu najde znovu a zkusí ji poslat.
