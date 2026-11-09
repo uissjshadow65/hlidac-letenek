@@ -72,7 +72,7 @@
     "VIE 2027-05-13": {
       "origin": "VIE",
       "return_date": "2027-05-13",
-      "price_per_person": 3630,
+      "price_per_person": 3629,
       "airlines": [
         "Ryanair"
       ],
@@ -100,6 +100,15 @@
         "KTW": 6052,
         "PRG": 4488,
         "VIE": 3630
+      }
+    },
+    {
+      "time": "2026-11-09T16:19+01:00",
+      "prices": {
+        "KRK": 2666,
+        "KTW": 6052,
+        "PRG": 4488,
+        "VIE": 3629
       }
     }
   ]
