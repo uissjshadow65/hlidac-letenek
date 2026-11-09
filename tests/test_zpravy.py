@@ -105,8 +105,14 @@ def test_poplach_krici_a_ma_nejvyssi_prioritu():
     assert "👉👉 KUP HNED na Kiwi 👈👈" in message.body
 
 
-def test_bezne_zpravy_maji_normalni_prioritu():
+def test_ranni_prehled_ma_vysokou_prioritu_aby_vyskocil():
     message = zpravy.overview_message("☀️ Ranní přehled", {"PRG 2027-05-12": offer("PRG", "2027-05-12", 4000)})
+
+    assert message.priority == 4
+
+
+def test_hodinova_kontrola_ma_normalni_prioritu():
+    message = zpravy.hourly_message({"PRG 2027-05-12": offer("PRG", "2027-05-12", 4000)})
 
     assert message.priority == 3
 

@@ -18,6 +18,9 @@ zbývá jen jedno místo, uvidíš skutečnou cenu pro dva.
 | ⚠️ Hlídač letenek nefunguje | když neprojde žádný dotaz (jen jednou, ne každou hodinu) |
 | ✅ Hlídač letenek zase funguje | po výpadku |
 
+Ranní přehled, změny ceny a varování chodí s **vysokou prioritou** (vyskočí na displeji),
+hodinová kontrola s normální (jen tiše do lišty). Nastavuje se v `nastaveni.py`.
+
 **Když ráno nepřijde přehled, něco je špatně** – podívej se na GitHubu do záložky *Actions*.
 
 ## Soubory
