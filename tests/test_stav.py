@@ -54,3 +54,12 @@ def test_starsi_soubor_bez_poplachu_jde_nacist(tmp_path):
     path.write_text('{"offers": {}, "failing_since": null, "last_daily_report": null}', encoding="utf-8")
 
     assert load_state(path).alert_price is None
+
+
+def test_historie_grafu_se_ulozi_a_nacte(tmp_path):
+    path = tmp_path / "ceny.json"
+    original = State(history=[{"time": "2026-11-09T03:00+01:00", "prices": {"PRG": 3000}}], last_chart="2026-11-09T03:00+01:00")
+
+    save_state(path, original)
+
+    assert load_state(path) == original

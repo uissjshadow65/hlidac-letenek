@@ -22,6 +22,10 @@ class State:
     failing_since: str | None = None  # čas, od kdy selhávají všechny dotazy (None = vše v pořádku)
     last_daily_report: str | None = None  # datum posledního ranního hlášení, např. "2026-11-09"
     alert_price: int | None = None  # cena, při které přišel poslední 🚨 poplach (None = cena je nad hranicí)
+    # Historie pro graf: [{"time": "2026-11-09T14:22+01:00", "prices": {"PRG": 4000, …}}, …]
+    # Pro každé letiště nejlevnější cena za osobu (přes obě data návratu). Letiště bez letu chybí.
+    history: list[dict] = field(default_factory=list)
+    last_chart: str | None = None  # kdy naposledy odešel graf (ISO čas)
 
 
 def load_state(path: Path) -> State:
@@ -39,6 +43,8 @@ def load_state(path: Path) -> State:
             failing_since=data.get("failing_since"),
             last_daily_report=data.get("last_daily_report"),
             alert_price=data.get("alert_price"),  # ve starším ceny.json chybí → None
+            history=list(data.get("history", [])),
+            last_chart=data.get("last_chart"),
         )
     except (ValueError, KeyError, TypeError) as error:
         raise StateError(f"Soubor {path.name} je poškozený: {error!r}") from error
@@ -54,6 +60,8 @@ def save_state(path: Path, state: State) -> None:
         "failing_since": state.failing_since,
         "last_daily_report": state.last_daily_report,
         "alert_price": state.alert_price,
+        "last_chart": state.last_chart,
+        "history": state.history,
     }
     temporary = path.with_name(path.name + ".tmp")
     temporary.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")

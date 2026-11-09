@@ -12,6 +12,7 @@ Zkušební zpráva (PowerShell):
 
 import json
 import os
+import urllib.parse
 import urllib.request
 
 NTFY_URL = "https://ntfy.sh/"
@@ -46,15 +47,43 @@ def build_request(
     )
 
 
+def build_attachment_request(
+    topic: str,
+    title: str,
+    message: str,
+    attachment: bytes,
+    filename: str,
+    tags: list[str] | None = None,
+    priority: int = PRIORITY_DEFAULT,
+) -> urllib.request.Request:
+    """Notifikace s přílohou (např. obrázek grafu – v mobilu se ukáže přímo ve zprávě).
+
+    Soubor jde v těle požadavku (PUT), titulek a text v adrese (?title=…&message=…).
+    Adresa je zakódovaná v UTF-8, takže čeština i emoji projdou.
+    """
+    if not topic:
+        raise ValueError("Chybí název kanálu ntfy (proměnná prostředí NTFY_TOPIC).")
+    params = {"title": title, "message": message, "priority": str(priority), "filename": filename}
+    if tags:
+        params["tags"] = ",".join(tags)
+    url = NTFY_URL + urllib.parse.quote(topic) + "?" + urllib.parse.urlencode(params)
+    return urllib.request.Request(url, data=attachment, method="PUT")
+
+
 def send_notification(
     topic: str,
     title: str,
     message: str,
     tags: list[str] | None = None,
     priority: int = PRIORITY_DEFAULT,
+    attachment: bytes | None = None,
+    filename: str = "graf.png",
 ) -> None:
-    """Odešle notifikaci. Při chybě (výpadek sítě, ntfy nedostupné) vyhodí výjimku."""
-    request = build_request(topic, title, message, tags, priority)
+    """Odešle notifikaci (případně s přílohou). Při chybě (výpadek sítě, ntfy nedostupné) vyhodí výjimku."""
+    if attachment is None:
+        request = build_request(topic, title, message, tags, priority)
+    else:
+        request = build_attachment_request(topic, title, message, attachment, filename, tags, priority)
     with urllib.request.urlopen(request, timeout=TIMEOUT_SECONDS) as response:
         if response.status != 200:
             raise RuntimeError(f"ntfy odpovědělo kódem {response.status}")

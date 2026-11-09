@@ -23,6 +23,18 @@ CURRENCY = "CZK"
 # překročí a pak pod ni zase spadne.
 ALERT_PRICE_PER_PERSON = 2000
 
+# Priorita notifikací v ntfy (1 = nejnižší … 5 = poplach).
+# 3 = "normální": v mobilu se často jen tiše uloží do lišty (Android ji nevyhodí jako
+# vyskakovací okno, iPhone ji může schovat do souhrnu nebo ztlumit v režimu Spánek/Soustředění).
+# 4 = "vysoká": vyskočí na displeji a na iPhonu je "časově citlivá", takže projde i přes souhrn.
+PRIORITY_IMPORTANT = 4  # ranní přehled, změna ceny, spuštění, výpadek a obnovení
+PRIORITY_HOURLY = 4  # hodinová kontrola – taky vyskočí, ať je vidět každou hodinu
+
+# 📈 Graf vývoje cen: přiloží se ke zprávě s cenami jednou za tolik hodin.
+CHART_EVERY_HOURS = 6
+HISTORY_DAYS = 30  # jak dlouho zpátky si pamatujeme ceny (a kolik ukáže graf)
+TREND_HOURS = 24  # ve zprávě s grafem: o kolik se změnila nejlevnější cena za tuto dobu
+
 TIMEZONE = "Europe/Prague"
 DAILY_REPORT_HOUR = 8  # ranní přehled při prvním běhu po 8:00
 PAUSE_SECONDS = (3, 8)  # náhodná pauza mezi dotazy na Google (od, do)

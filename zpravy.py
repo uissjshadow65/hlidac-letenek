@@ -11,8 +11,9 @@ from porovnani import Change, ChangeKind
 class Message:
     title: str
     body: str
-    priority: int = 3  # 1–5, 5 = poplach
+    priority: int = nastaveni.PRIORITY_IMPORTANT  # 1–5, 5 = poplach
     # Záměrně bez odkazu: klepnutí na notifikaci jen otevře aplikaci ntfy.
+    chart: bytes | None = None  # 📈 obrázek grafu (PNG), přiloží se ke zprávě
 
 
 def format_price(price: int) -> str:
@@ -113,7 +114,11 @@ def overview_message(title: str, offers: dict[str, Offer | None], warning: str |
 def hourly_message(offers: dict[str, Offer | None]) -> Message:
     """Hodinová zpráva, když se ceny nezměnily: nejlevnější nahoře + všechna letiště."""
     overview = overview_message("🕐 Hodinová kontrola", offers)
-    return Message(title=overview.title, body=overview.body + "\n\nBeze změny od minulé kontroly.")
+    return Message(
+        title=overview.title,
+        body=overview.body + "\n\nBeze změny od minulé kontroly.",
+        priority=nastaveni.PRIORITY_HOURLY,
+    )
 
 
 def alert_message(offers: dict[str, Offer | None], limit: int) -> Message:

@@ -1,6 +1,6 @@
 """Testy celého běhu hlídače – falešný Google, falešné notifikace, žádné čekání."""
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
 import hlidac
@@ -37,12 +37,19 @@ class FakeNotify:
 
     def __init__(self, broken=False):
         self.sent = []
+        self.charts = []  # titulky zpráv, ke kterým byl přiložený graf
+        self.bodies = []
         self.broken = broken
 
-    def __call__(self, topic, title, body, priority=3):
+    def __call__(self, topic, title, body, priority=3, attachment=None):
         if self.broken:
             raise OSError("vymyšlený výpadek ntfy")
-        self.sent.append("🚨 POPLACH" if priority == 5 else title.split(" · ")[0])
+        name = "🚨 POPLACH" if priority == 5 else title.split(" · ")[0]
+        self.sent.append(name)
+        self.bodies.append(body)
+        if attachment is not None:
+            assert attachment.startswith(b"\x89PNG")
+            self.charts.append(name)
 
 
 def run(tmp_path, google, notify, now=NIGHT):
@@ -308,3 +315,68 @@ def test_promenna_prostredi_urci_posledni_pokus(monkeypatch):
     hlidac.main()
 
     assert seen == [False, True, True]
+
+
+# --- 📈 Graf vývoje cen ---
+
+HOUR = timedelta(hours=1)
+
+
+def test_prvni_beh_graf_neposle_neni_z_ceho_kreslit(tmp_path):
+    notify = FakeNotify()
+
+    run(tmp_path, FakeGoogle(), notify)
+
+    assert notify.charts == []
+    assert len(load_state(tmp_path / "ceny.json").history) == 1
+
+
+def test_graf_prijde_s_hodinovou_kontrolou_jednou_za_6_hodin(tmp_path):
+    run(tmp_path, FakeGoogle(), FakeNotify(), now=NIGHT - HOUR)
+    with_chart = [run_and_charts(tmp_path, NIGHT + i * HOUR) for i in range(8)]
+
+    # 3:00 graf, pak 6 hodin nic, v 9:00 zase (s ranním přehledem)
+    assert with_chart == [True, False, False, False, False, False, True, False]
+
+
+def test_graf_prida_trend_za_24_hodin(tmp_path):
+    run(tmp_path, FakeGoogle(), FakeNotify(), now=NIGHT - HOUR)
+    notify = FakeNotify()
+
+    run(tmp_path, FakeGoogle({"KRK 2027-05-13": 2800}), notify)
+
+    assert notify.charts == ["💰 Změna ceny"]
+    assert notify.bodies[0].startswith("📉 Za 24 h: −200 Kč (zlevnění), 3 000 Kč → 2 800 Kč/os.")
+
+
+def test_historie_si_pamatuje_nejlevnejsi_cenu_kazdeho_letiste(tmp_path):
+    run(tmp_path, FakeGoogle({"PRG 2027-05-12": 2500, "BRQ 2027-05-12": None, "BRQ 2027-05-13": None}), FakeNotify())
+
+    prices = load_state(tmp_path / "ceny.json").history[0]["prices"]
+    assert prices["PRG"] == 2500
+    assert "BRQ" not in prices
+
+
+def test_stara_historie_se_maze(tmp_path):
+    run(tmp_path, FakeGoogle(), FakeNotify(), now=NIGHT - timedelta(days=31))
+
+    run(tmp_path, FakeGoogle(), FakeNotify())
+
+    assert len(load_state(tmp_path / "ceny.json").history) == 1
+
+
+def test_kdyz_graf_nejde_nakreslit_zprava_prijde_bez_nej(tmp_path, monkeypatch):
+    run(tmp_path, FakeGoogle(), FakeNotify(), now=NIGHT - HOUR)
+    monkeypatch.setattr(hlidac.graf, "chart_png", lambda history: 1 / 0)
+    notify = FakeNotify()
+
+    assert run(tmp_path, FakeGoogle(), notify) == 0
+
+    assert notify.sent == ["🕐 Hodinová kontrola"]
+    assert notify.charts == []
+
+
+def run_and_charts(tmp_path, now):
+    notify = FakeNotify()
+    run(tmp_path, FakeGoogle(), notify, now=now)
+    return bool(notify.charts)

@@ -1,6 +1,7 @@
 """Testy notifikací – nic se doopravdy neodesílá, jen kontrolujeme připravený požadavek."""
 
 import json
+import urllib.parse
 
 import pytest
 
@@ -61,3 +62,14 @@ def test_poplach_ma_prioritu_5():
     payload = json.loads(notifikace.build_request("k", "T", "Z", priority=notifikace.PRIORITY_MAX).data)
 
     assert payload["priority"] == 5
+
+
+def test_priloha_jde_v_tele_a_cestina_v_adrese():
+    request = notifikace.build_attachment_request("kanal", "Změna ceny ✈️", "Krakov 2 667 Kč", b"PNG", "graf.png", priority=4)
+
+    assert request.get_method() == "PUT"
+    assert request.data == b"PNG"
+    url = urllib.parse.urlsplit(request.full_url)
+    assert url.path == "/kanal"
+    params = dict(urllib.parse.parse_qsl(url.query))
+    assert params == {"title": "Změna ceny ✈️", "message": "Krakov 2 667 Kč", "priority": "4", "filename": "graf.png"}
