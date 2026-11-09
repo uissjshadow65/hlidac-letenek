@@ -63,7 +63,7 @@
     "VIE 2027-05-12": {
       "origin": "VIE",
       "return_date": "2027-05-12",
-      "price_per_person": 3848,
+      "price_per_person": 3849,
       "airlines": [
         "Ryanair"
       ],
@@ -72,7 +72,7 @@
     "VIE 2027-05-13": {
       "origin": "VIE",
       "return_date": "2027-05-13",
-      "price_per_person": 3629,
+      "price_per_person": 3630,
       "airlines": [
         "Ryanair"
       ],
