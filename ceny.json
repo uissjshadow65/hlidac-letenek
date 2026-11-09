@@ -82,10 +82,19 @@
   "failing_since": null,
   "last_daily_report": "2026-11-09",
   "alert_price": null,
-  "last_chart": null,
+  "last_chart": "2026-11-09T15:31+01:00",
   "history": [
     {
       "time": "2026-11-09T15:29+01:00",
+      "prices": {
+        "KRK": 2666,
+        "KTW": 6052,
+        "PRG": 4488,
+        "VIE": 3630
+      }
+    },
+    {
+      "time": "2026-11-09T15:31+01:00",
       "prices": {
         "KRK": 2666,
         "KTW": 6052,
