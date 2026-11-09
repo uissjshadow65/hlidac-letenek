@@ -59,12 +59,23 @@ FASTER = "#39ff14"  # zlevnění = zelená (jako rychlejší kolo)
 SLOWER = "#ff3b3b"  # zdražení = červená
 
 
+def signed_price(value: int) -> str:
+    """−120 → "−120 Kč", 80 → "+80 Kč", 0 → "±0 Kč"."""
+    sign = "−" if value < 0 else "+" if value > 0 else "±"
+    return sign + format_price(abs(value))
+
+
+def change_color(value: int) -> str:
+    return FASTER if value < 0 else SLOWER if value > 0 else TEXT
+
+
 def chart_png(history: list[dict]) -> bytes | None:
     """Nakreslí graf ve stylu telemetrie z auta. Vrátí PNG, nebo None, když nejsou aspoň 2 body.
 
-    Nahoře: stopy všech letišť přes sebe, nejlevnější svítí bíle.
-    Dole: delta stopa – o kolik je nejlevnější cena jinde než na začátku grafu
-    (pod nulou zeleně = zlevnilo, nad nulou červeně = zdražilo).
+    Aby byly vidět i malé změny, neukazuje celé ceny na jedné ose (6 000 vs. 2 600 Kč
+    by změnu o 100 Kč úplně schovalo), ale:
+    Nahoře: o kolik se změnila cena každého letiště od začátku grafu (všechna letiště přes sebe kolem nuly).
+    Dole: nejlevnější cena s přiblíženou osou a popiskem u každé změny.
     """
     points = [e for e in history if e["prices"]]
     if len(points) < 2:
@@ -81,11 +92,12 @@ def chart_png(history: list[dict]) -> bytes | None:
 
     times = [datetime.fromisoformat(e["time"]) for e in points]
     cheapest = [cheapest_at(e) for e in points]
-    delta = [price - cheapest[0] for price in cheapest]
-    thousands = FuncFormatter(lambda v, _: f"{v:,.0f}".replace(",", " "))
+    total = cheapest[-1] - cheapest[0]
+    thousands = FuncFormatter(lambda v, _: f"{v:+,.0f}".replace(",", " ").replace("-", "−") if v else "0")
+    plain = FuncFormatter(lambda v, _: f"{v:,.0f}".replace(",", " "))
 
     figure, (top, bottom) = plt.subplots(
-        2, 1, figsize=(10, 7), dpi=110, sharex=True, gridspec_kw={"height_ratios": [3, 1], "hspace": 0.08}
+        2, 1, figsize=(10, 8), dpi=110, sharex=True, gridspec_kw={"height_ratios": [3, 2], "hspace": 0.12}
     )
     figure.patch.set_facecolor(BACKGROUND)
     for axes in (top, bottom):
@@ -94,56 +106,81 @@ def chart_png(history: list[dict]) -> bytes | None:
         axes.tick_params(colors=TEXT, labelsize=9)
         for spine in axes.spines.values():
             spine.set_color(GRID)
-        axes.yaxis.set_major_formatter(thousands)
         axes.yaxis.tick_right()  # čísla vpravo jako na displeji
+    top.yaxis.set_major_formatter(thousands)
+    bottom.yaxis.set_major_formatter(plain)
 
-    # Stopy letišť přes sebe; jméno a cena na konci každé stopy místo legendy.
+    def glow(line, color, width):
+        line.set_path_effects([effects.Stroke(linewidth=width, alpha=0.2, foreground=color), effects.Normal()])
+
+    # --- Nahoře: změna ceny každého letiště od jeho první ceny v grafu ---
+    top.axhline(0, color=TEXT, linewidth=1, alpha=0.6)
     labels = []
+    biggest = 0
     for (origin, name), color in zip(nastaveni.ORIGINS.items(), TRACE_COLORS):
         prices = [e["prices"].get(origin) for e in points]
-        if all(p is None for p in prices):
+        known = [p for p in prices if p is not None]
+        if not known:
             continue
-        values = [float("nan") if p is None else p for p in prices]
-        line, = top.plot(times, values, color=color, linewidth=1.6, alpha=0.9)
-        line.set_path_effects([effects.Stroke(linewidth=6, alpha=0.15, foreground=color), effects.Normal()])
-        last = next((p for p in reversed(prices) if p is not None), None)
-        if last is not None:
-            labels.append((last, f"{name} {format_price(last)}", color))
+        deltas = [float("nan") if p is None else p - known[0] for p in prices]
+        biggest = max(biggest, max(abs(p - known[0]) for p in known))
+        line, = top.plot(times, deltas, color=color, linewidth=2.2, drawstyle="steps-post")
+        glow(line, color, 8)
+        changed = [i for i in range(1, len(prices)) if prices[i] is not None and prices[i - 1] is not None and prices[i] != prices[i - 1]]
+        top.scatter([times[i] for i in changed], [deltas[i] for i in changed], color=color, s=22, zorder=6)
+        change = known[-1] - known[0]
+        labels.append((change, f"{name:<10} {format_price(known[-1]):>9}  {signed_price(change)}", color))
+    span = max(150, biggest * 1.25)  # i malá změna zabere velký kus grafu
+    top.set_ylim(-span, span)
+    top.text(0.01, 0.97, "ZMĚNA OD ZAČÁTKU GRAFU (Kč/os.)", transform=top.transAxes, color=TEXT,
+             fontsize=9, family="monospace", va="top")
+    top.text(0.01, 0.03, "▼ zlevnění", transform=top.transAxes, color=FASTER, fontsize=9, family="monospace")
+    top.text(0.01, 0.90, "▲ zdražení", transform=top.transAxes, color=SLOWER, fontsize=9, family="monospace", va="top")
 
-    # Nejlevnější: bílá svítící stopa, čárkovaně, ať je vidět i letiště pod ní.
-    best, = top.plot(times, cheapest, color=BEST_COLOR, linewidth=2.2, linestyle=(0, (4, 2)), zorder=5)
-    best.set_path_effects([effects.Stroke(linewidth=9, alpha=0.2, foreground=BEST_COLOR), effects.Normal()])
-
-    limit = nastaveni.ALERT_PRICE_PER_PERSON
-    top.axhline(limit, color=SLOWER, linestyle=":", linewidth=1.4)
-    top.text(times[0], limit, f" POPLACH {format_price(limit)}", color=SLOWER, fontsize=8, va="bottom")
-
-    # Popisky na konci stop (vpravo za grafem), rozestrčené, ať se nepřekrývají.
-    low, high = top.get_ylim()
-    gap = (high - low) * 0.06
+    # Popisky vpravo: letiště, aktuální cena a změna; rozestrčené, ať se nepřekrývají.
     beside = matplotlib.transforms.blended_transform_factory(top.transAxes, top.transData)
+    gap = span * 2 * 0.075
     previous = None
-    for value, text, color in sorted(labels):
-        y = value if previous is None else max(value, previous + gap)
+    for change, text, color in sorted(labels, reverse=True):
+        y = change if previous is None else min(change, previous - gap)
         previous = y
-        top.text(1.09, y, text, transform=beside, color=color, fontsize=9, va="center")
-    figure.subplots_adjust(left=0.03, right=0.70, top=0.9, bottom=0.1)
+        top.text(1.09, y, text, transform=beside, color=color, fontsize=9, va="center", family="monospace")
 
-    # Delta stopa.
-    bottom.axhline(0, color=TEXT, linewidth=0.8, alpha=0.6)
-    bottom.fill_between(times, delta, 0, where=[d <= 0 for d in delta], color=FASTER, alpha=0.25, interpolate=True)
-    bottom.fill_between(times, delta, 0, where=[d >= 0 for d in delta], color=SLOWER, alpha=0.25, interpolate=True)
-    bottom.plot(times, delta, color=FASTER if delta[-1] <= 0 else SLOWER, linewidth=1.8)
-    bottom.set_ylabel("Δ Kč", color=TEXT, fontsize=9)
-    sign = "−" if delta[-1] < 0 else "+"
-    bottom.text(1.09, 0.5, f"Δ {sign}{format_price(abs(delta[-1]))}", transform=bottom.transAxes,
-                color=FASTER if delta[-1] <= 0 else SLOWER, fontsize=12, fontweight="bold", va="center")
+    # --- Dole: nejlevnější cena, osa přiblížená na její rozsah ---
+    low, high = min(cheapest), max(cheapest)
+    pad = max(60, (high - low) * 0.35)
+    bottom.set_ylim(low - pad, high + pad)
+    bottom.fill_between(times, cheapest, low - pad, step="post", color=BEST_COLOR, alpha=0.06)
+    bottom.plot(times, cheapest, color=BEST_COLOR, linewidth=2.6, drawstyle="steps-post")
+    for i in range(1, len(times)):  # skok zeleně při zlevnění, červeně při zdražení
+        if cheapest[i] != cheapest[i - 1]:
+            bottom.plot([times[i], times[i]], [cheapest[i - 1], cheapest[i]],
+                        color=change_color(cheapest[i] - cheapest[i - 1]), linewidth=4, zorder=5)
+    changes = [i for i in range(1, len(cheapest)) if cheapest[i] != cheapest[i - 1]]
+    for i in changes[-12:]:  # popisek u každé změny (u posledních 12, ať to není přeplácané)
+        difference = cheapest[i] - cheapest[i - 1]
+        bottom.annotate(f"{format_price(cheapest[i])}\n{signed_price(difference)}", (times[i], cheapest[i]),
+                        xytext=(0, -26 if difference < 0 else 10), textcoords="offset points", ha="center",
+                        color=change_color(difference), fontsize=8, family="monospace")
+    limit = nastaveni.ALERT_PRICE_PER_PERSON
+    if low - pad <= limit <= high + pad:
+        bottom.axhline(limit, color=SLOWER, linestyle=":", linewidth=1.4)
+        bottom.text(times[0], limit, f" POPLACH {format_price(limit)}", color=SLOWER, fontsize=8, va="bottom")
+    else:
+        bottom.text(0.99, 0.04, f"do poplachu ({format_price(limit)}) chybí {format_price(low - limit)}",
+                    transform=bottom.transAxes, color=SLOWER, fontsize=8, ha="right", family="monospace")
+    bottom.text(0.01, 0.95, "NEJLEVNĚJŠÍ (Kč/os.)", transform=bottom.transAxes, color=TEXT,
+                fontsize=9, family="monospace", va="top")
+    bottom.text(1.09, 0.5, signed_price(total), transform=bottom.transAxes, color=change_color(total),
+                fontsize=15, fontweight="bold", va="center", family="monospace")
     bottom.xaxis.set_major_formatter(mdates.DateFormatter("%d. %m.\n%H:%M", tz=times[-1].tzinfo))
 
-    # Hlavička jako na displeji: nejlevnější cena velkým písmem.
+    figure.subplots_adjust(left=0.03, right=0.66, top=0.9, bottom=0.08)
+
+    # Hlavička jako na displeji.
     figure.text(0.03, 0.95, "LETENKY → PAŘÍŽ  |  KČ ZA OSOBU", color=TEXT, fontsize=10, family="monospace")
-    figure.text(0.70, 0.95, f"BEST {format_price(cheapest[-1])}", color=BEST_COLOR, fontsize=16,
-                fontweight="bold", family="monospace", ha="right")
+    figure.text(0.97, 0.95, f"BEST {format_price(cheapest[-1])}  {signed_price(total)}", color=change_color(total),
+                fontsize=16, fontweight="bold", family="monospace", ha="right")
 
     buffer = io.BytesIO()
     figure.savefig(buffer, format="png", facecolor=BACKGROUND)
