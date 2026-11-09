@@ -4,7 +4,9 @@ Spouští se každou hodinu (GitHub Actions). Ručně (PowerShell):
     $env:NTFY_TOPIC = "tvuj-tajny-kanal"
     .venv\\Scripts\\python.exe hlidac.py
 
-Návratový kód: 0 = v pořádku, 1 = nepodařilo se odeslat notifikaci, 2 = chyba nastavení/stavu.
+Návratový kód: 0 = v pořádku, 1 = nepodařilo se odeslat notifikaci, 2 = chyba nastavení/stavu,
+3 = Google zablokoval všechny dotazy a toto NENÍ poslední pokus (HLIDAC_FINAL_ATTEMPT=0) –
+    nic se neposlalo ani neuložilo, workflow to zkusí znovu na jiném serveru (jiná IP adresa).
 """
 
 import logging
@@ -25,17 +27,20 @@ from porovnani import compare, offer_key
 from stav import StateError, load_state, save_state
 
 STATE_PATH = Path(__file__).parent / "ceny.json"
+EXIT_BLOCKED = 3
 
 log = logging.getLogger("hlidac")
 
 
-def check_all(get_offer, sleep) -> tuple[dict[str, Offer | None], int]:
-    """Zjistí ceny všech kombinací. Vrátí (zjištěné ceny, počet selhaných dotazů).
+def check_all(get_offer, sleep) -> tuple[dict[str, Offer | None], int, str | None]:
+    """Zjistí ceny všech kombinací.
 
+    Vrátí (zjištěné ceny, počet selhaných dotazů, důvod první chyby nebo None).
     Selhaná kombinace ve výsledku chybí – porovnání ji pak přeskočí.
     """
     results: dict[str, Offer | None] = {}
     failed = 0
+    first_error: str | None = None
     combinations = [(o, d) for o in nastaveni.ORIGINS for d in nastaveni.RETURN_DATES]
     for index, (origin, return_date) in enumerate(combinations):
         if index > 0:
@@ -47,8 +52,9 @@ def check_all(get_offer, sleep) -> tuple[dict[str, Offer | None], int]:
             log.info("%s: %s", key, f"{offer.price_per_person} Kč/os." if offer else "žádný let")
         except Exception as error:  # i neočekávaná chyba jen u jedné kombinace nesmí shodit celý běh
             failed += 1
+            first_error = first_error or str(error)
             log.warning("%s: dotaz selhal – %s", key, error)
-    return results, failed
+    return results, failed, first_error
 
 
 def check_alert(state) -> zpravy.Message | None:
@@ -68,15 +74,32 @@ def check_alert(state) -> zpravy.Message | None:
     return zpravy.alert_message(state.offers, limit)
 
 
-def run(state_path: Path, topic: str, now: datetime, get_offer=ceny.get_offer, notify=None, sleep=time.sleep) -> int:
-    """Jeden běh hlídače. Internet, notifikace i čekání jdou v testech nahradit."""
+def run(
+    state_path: Path,
+    topic: str,
+    now: datetime,
+    get_offer=ceny.get_offer,
+    notify=None,
+    sleep=time.sleep,
+    final_attempt: bool = True,
+) -> int:
+    """Jeden běh hlídače. Internet, notifikace i čekání jdou v testech nahradit.
+
+    `final_attempt=False`: když neprojde ani jeden dotaz, nic neposílej ani neukládej
+    a vrať EXIT_BLOCKED – workflow to zkusí znovu na jiném serveru.
+    """
     notify = notify or notifikace.send_notification
     state = load_state(state_path)
     first_run = not state.offers
     messages: list[zpravy.Message] = []
 
-    new_offers, failed = check_all(get_offer, sleep)
+    new_offers, failed, first_error = check_all(get_offer, sleep)
     log.info("Zjištěno %d kombinací, selhalo %d.", len(new_offers), failed)
+
+    if not new_offers and not final_attempt:
+        log.warning("Google zablokoval všechny dotazy (%s). Zkusí se další pokus na jiném serveru.", first_error)
+        return EXIT_BLOCKED
+
     price_message_sent = False  # poslala se v tomto běhu už zpráva s cenami?
     alert = None
 
@@ -84,7 +107,7 @@ def run(state_path: Path, topic: str, now: datetime, get_offer=ceny.get_offer, n
         # Neprošel ani jeden dotaz → varování, ale jen poprvé (ne každou hodinu).
         if state.failing_since is None:
             state.failing_since = now.isoformat(timespec="minutes")
-            messages.append(zpravy.failure_message(failed))
+            messages.append(zpravy.failure_message(failed, first_error))
     else:
         if state.failing_since is not None:
             state.failing_since = None
@@ -139,8 +162,10 @@ def main() -> int:
         log.error("Chybí proměnná prostředí NTFY_TOPIC (název kanálu ntfy).")
         return 2
     now = datetime.now(ZoneInfo(nastaveni.TIMEZONE))
+    # Workflow nastaví "0" u pokusů, po kterých ještě může přijít další (na jiném serveru).
+    final_attempt = os.environ.get("HLIDAC_FINAL_ATTEMPT", "1") != "0"
     try:
-        return run(STATE_PATH, topic, now)
+        return run(STATE_PATH, topic, now, final_attempt=final_attempt)
     except StateError as error:
         log.error("%s", error)
         return 2

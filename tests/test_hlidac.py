@@ -252,3 +252,59 @@ def test_poplach_prijde_i_pri_prvnim_behu(tmp_path):
     run(tmp_path, FakeGoogle({"VIE 2027-05-12": 1500}), notify)
 
     assert notify.sent == ["✈️ Hlídač spuštěn", "🚨 POPLACH"]
+
+
+# --- Blokace Googlem: další pokus na jiném serveru ---
+
+
+def test_blokace_pred_poslednim_pokusem_nic_neposle_ani_neulozi(tmp_path):
+    run(tmp_path, FakeGoogle(), FakeNotify())
+    before = (tmp_path / "ceny.json").read_text(encoding="utf-8")
+    notify = FakeNotify()
+
+    result = hlidac.run(
+        tmp_path / "ceny.json", "kanal", NIGHT,
+        get_offer=FakeGoogle(failing=True), notify=notify, sleep=lambda s: None, final_attempt=False,
+    )
+
+    assert result == hlidac.EXIT_BLOCKED
+    assert notify.sent == []
+    assert (tmp_path / "ceny.json").read_text(encoding="utf-8") == before
+
+
+def test_uspesny_pokus_pred_poslednim_pokusem_funguje_normalne(tmp_path):
+    run(tmp_path, FakeGoogle(), FakeNotify())
+    notify = FakeNotify()
+
+    result = hlidac.run(
+        tmp_path / "ceny.json", "kanal", NIGHT,
+        get_offer=FakeGoogle(), notify=notify, sleep=lambda s: None, final_attempt=False,
+    )
+
+    assert result == 0
+    assert notify.sent == ["🕐 Hodinová kontrola"]
+
+
+def test_blokace_pri_poslednim_pokusu_posle_varovani(tmp_path):
+    run(tmp_path, FakeGoogle(), FakeNotify())
+    notify = FakeNotify()
+
+    result = run(tmp_path, FakeGoogle(failing=True), notify)
+
+    assert result == 0
+    assert notify.sent == ["⚠️ Hlídač letenek nefunguje"]
+
+
+def test_promenna_prostredi_urci_posledni_pokus(monkeypatch):
+    seen = []
+    monkeypatch.setenv("NTFY_TOPIC", "kanal")
+    monkeypatch.setattr(hlidac, "run", lambda *args, final_attempt: seen.append(final_attempt) or 0)
+
+    monkeypatch.setenv("HLIDAC_FINAL_ATTEMPT", "0")
+    hlidac.main()
+    monkeypatch.setenv("HLIDAC_FINAL_ATTEMPT", "1")
+    hlidac.main()
+    monkeypatch.delenv("HLIDAC_FINAL_ATTEMPT")
+    hlidac.main()
+
+    assert seen == [False, True, True]

@@ -1,0 +1,64 @@
+# Jeden pokus hlídače na jednom serveru GitHubu.
+# Nespouští se samostatně – volá ho hlidac.yml (až 3×, pokaždé na novém serveru s jinou IP).
+name: Pokus hlídače
+
+on:
+  workflow_call:
+    inputs:
+      final_attempt:
+        description: '"1" = poslední pokus (při blokaci pošle ⚠️), "0" = může přijít další pokus'
+        type: string
+        required: true
+    outputs:
+      blocked:
+        description: '"true", když Google zablokoval všechny dotazy a má se zkusit jiný server'
+        value: ${{ jobs.pokus.outputs.blocked }}
+
+jobs:
+  pokus:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    outputs:
+      blocked: ${{ steps.hlidac.outputs.blocked }}
+    steps:
+      - name: Stáhnout kód
+        uses: actions/checkout@v5
+
+      - name: Nainstalovat Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.14"
+          cache: pip
+
+      - name: Nainstalovat knihovny
+        run: pip install -r requirements.txt
+
+      - name: Spustit hlídač
+        id: hlidac
+        env:
+          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+          HLIDAC_FINAL_ATTEMPT: ${{ inputs.final_attempt }}
+        run: |
+          set +e
+          python hlidac.py
+          code=$?
+          if [ "$code" -eq 3 ]; then
+            echo "Google zablokoval tento server – zkusí se další pokus na jiném."
+            echo "blocked=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          exit $code
+
+      - name: Uložit ceny.json do repozitáře
+        if: steps.hlidac.outputs.blocked != 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add ceny.json
+          if git diff --cached --quiet; then
+            echo "Ceny se nezměnily, není co ukládat."
+          else
+            git commit -m "Aktualizace cen"
+            git pull --rebase
+            git push
+          fi

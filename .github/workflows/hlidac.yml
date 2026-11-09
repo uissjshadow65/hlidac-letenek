@@ -14,37 +14,28 @@ concurrency:
   group: hlidac # nikdy dva běhy najednou (přepisovaly by si ceny.json)
   cancel-in-progress: false
 
+# Google občas zablokuje IP adresu serveru GitHubu. Každý pokus (job) dostane
+# nový server s jinou IP, proto to při blokaci zkusíme až 3×. Teprve když
+# selže i třetí pokus, hlídač pošle ⚠️ "nefunguje".
 jobs:
-  hlidac:
-    runs-on: ubuntu-latest
-    timeout-minutes: 15
-    steps:
-      - name: Stáhnout kód
-        uses: actions/checkout@v5
+  pokus1:
+    uses: ./.github/workflows/pokus.yml
+    with:
+      final_attempt: "0"
+    secrets: inherit
 
-      - name: Nainstalovat Python
-        uses: actions/setup-python@v6
-        with:
-          python-version: "3.14"
-          cache: pip
+  pokus2:
+    needs: pokus1
+    if: needs.pokus1.outputs.blocked == 'true'
+    uses: ./.github/workflows/pokus.yml
+    with:
+      final_attempt: "0"
+    secrets: inherit
 
-      - name: Nainstalovat knihovny
-        run: pip install -r requirements.txt
-
-      - name: Spustit hlídač
-        env:
-          NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
-        run: python hlidac.py
-
-      - name: Uložit ceny.json do repozitáře
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add ceny.json
-          if git diff --cached --quiet; then
-            echo "Ceny se nezměnily, není co ukládat."
-          else
-            git commit -m "Aktualizace cen"
-            git pull --rebase
-            git push
-          fi
+  pokus3:
+    needs: pokus2
+    if: needs.pokus2.outputs.blocked == 'true'
+    uses: ./.github/workflows/pokus.yml
+    with:
+      final_attempt: "1"
+    secrets: inherit

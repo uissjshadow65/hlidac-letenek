@@ -143,14 +143,14 @@ def alert_message(offers: dict[str, Offer | None], limit: int) -> Message:
     )
 
 
-def failure_message(failed: int) -> Message:
-    return Message(
-        title="⚠️ Hlídač letenek nefunguje",
-        body=(
-            f"Ani jeden z {failed} dotazů na Google Lety neprošel. "
-            "Zkusím to znovu za hodinu, a až to zase pojede, dám vědět."
-        ),
+def failure_message(failed: int, reason: str | None = None) -> Message:
+    body = (
+        f"Ani jeden z {failed} dotazů na Google Lety neprošel (ani na záložních serverech). "
+        "Zkusím to znovu za hodinu, a až to zase pojede, dám vědět."
     )
+    if reason:
+        body += f"\n\nDůvod: {reason}"
+    return Message(title="⚠️ Hlídač letenek nefunguje", body=body)
 
 
 def recovery_message() -> Message:

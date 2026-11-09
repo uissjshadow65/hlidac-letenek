@@ -141,3 +141,13 @@ def test_hodinova_kontrola_bez_letu():
 
     assert message.title == "🕐 Hodinová kontrola"
     assert message.body.startswith("Zatím žádné lety.")
+
+
+def test_varovani_obsahuje_duvod_chyby():
+    message = zpravy.failure_message(14, "Google nevrátil výsledky hledání")
+
+    assert message.body.endswith("Důvod: Google nevrátil výsledky hledání")
+
+
+def test_varovani_bez_duvodu():
+    assert "Důvod" not in zpravy.failure_message(14).body
