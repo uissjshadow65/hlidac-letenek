@@ -28,7 +28,7 @@ ALERT_PRICE_PER_PERSON = 2000
 # vyskakovací okno, iPhone ji může schovat do souhrnu nebo ztlumit v režimu Spánek/Soustředění).
 # 4 = "vysoká": vyskočí na displeji a na iPhonu je "časově citlivá", takže projde i přes souhrn.
 PRIORITY_IMPORTANT = 4  # ranní přehled, změna ceny, spuštění, výpadek a obnovení
-PRIORITY_HOURLY = 3  # hodinová kontrola beze změny – ať neotravuje každou hodinu
+PRIORITY_HOURLY = 4  # hodinová kontrola – taky vyskočí, ať je vidět každou hodinu
 
 TIMEZONE = "Europe/Prague"
 DAILY_REPORT_HOUR = 8  # ranní přehled při prvním běhu po 8:00

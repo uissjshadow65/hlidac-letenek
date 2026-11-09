@@ -111,10 +111,10 @@ def test_ranni_prehled_ma_vysokou_prioritu_aby_vyskocil():
     assert message.priority == 4
 
 
-def test_hodinova_kontrola_ma_normalni_prioritu():
+def test_hodinova_kontrola_ma_vysokou_prioritu_aby_vyskocila():
     message = zpravy.hourly_message({"PRG 2027-05-12": offer("PRG", "2027-05-12", 4000)})
 
-    assert message.priority == 3
+    assert message.priority == 4
 
 
 def test_hodinova_kontrola_ukaze_nejlevnejsi_a_vsechna_letiste():
