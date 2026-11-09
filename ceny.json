@@ -79,7 +79,7 @@
       "url": "https://www.google.com/travel/flights/search?tfs=GhoSCjIwMjctMDUtMDhqBRIDVklFcgUSA1BBUhoaEgoyMDI3LTA1LTEzagUSA1BBUnIFEgNWSUVCAgEBSAGYAQE=&hl=cs&curr=CZK"
     }
   },
-  "failing_since": "2026-11-09T08:19+01:00",
+  "failing_since": null,
   "last_daily_report": "2026-11-09",
   "alert_price": null
 }
