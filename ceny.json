@@ -7,7 +7,7 @@
     "KRK 2027-05-12": {
       "origin": "KRK",
       "return_date": "2027-05-12",
-      "price_per_person": 3379,
+      "price_per_person": 3492,
       "airlines": [
         "Ryanair"
       ],
@@ -16,7 +16,7 @@
     "KRK 2027-05-13": {
       "origin": "KRK",
       "return_date": "2027-05-13",
-      "price_per_person": 2657,
+      "price_per_person": 2661,
       "airlines": [
         "Ryanair"
       ],
@@ -25,7 +25,7 @@
     "KTW 2027-05-12": {
       "origin": "KTW",
       "return_date": "2027-05-12",
-      "price_per_person": 7089,
+      "price_per_person": 7093,
       "airlines": [
         "LOT"
       ],
@@ -34,7 +34,7 @@
     "KTW 2027-05-13": {
       "origin": "KTW",
       "return_date": "2027-05-13",
-      "price_per_person": 6025,
+      "price_per_person": 6029,
       "airlines": [
         "LOT"
       ],
@@ -63,7 +63,7 @@
     "VIE 2027-05-12": {
       "origin": "VIE",
       "return_date": "2027-05-12",
-      "price_per_person": 3872,
+      "price_per_person": 3871,
       "airlines": [
         "Austrian"
       ],
@@ -72,7 +72,7 @@
     "VIE 2027-05-13": {
       "origin": "VIE",
       "return_date": "2027-05-13",
-      "price_per_person": 3730,
+      "price_per_person": 3731,
       "airlines": [
         "Ryanair"
       ],
@@ -82,7 +82,7 @@
   "failing_since": null,
   "last_daily_report": "2026-11-12",
   "alert_price": null,
-  "last_chart": "2026-11-12T10:19+01:00",
+  "last_chart": "2026-11-12T16:19+01:00",
   "history": [
     {
       "time": "2026-11-09T15:29+01:00",
@@ -730,6 +730,15 @@
         "KTW": 6025,
         "PRG": 3870,
         "VIE": 3730
+      }
+    },
+    {
+      "time": "2026-11-12T16:19+01:00",
+      "prices": {
+        "KRK": 2661,
+        "KTW": 6029,
+        "PRG": 3870,
+        "VIE": 3731
       }
     }
   ]
