@@ -25,7 +25,7 @@
     "KTW 2027-05-12": {
       "origin": "KTW",
       "return_date": "2027-05-12",
-      "price_per_person": 6032,
+      "price_per_person": 6031,
       "airlines": [
         "LOT"
       ],
@@ -34,7 +34,7 @@
     "KTW 2027-05-13": {
       "origin": "KTW",
       "return_date": "2027-05-13",
-      "price_per_person": 6029,
+      "price_per_person": 6028,
       "airlines": [
         "LOT"
       ],
@@ -2051,6 +2051,15 @@
       "prices": {
         "KRK": 2679,
         "KTW": 6029,
+        "PRG": 4194,
+        "VIE": 3387
+      }
+    },
+    {
+      "time": "2026-11-19T04:19+01:00",
+      "prices": {
+        "KRK": 2679,
+        "KTW": 6028,
         "PRG": 4194,
         "VIE": 3387
       }
