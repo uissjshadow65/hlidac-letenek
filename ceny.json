@@ -45,7 +45,7 @@
     "PRG 2027-05-12": {
       "origin": "PRG",
       "return_date": "2027-05-12",
-      "price_per_person": 4194,
+      "price_per_person": 4492,
       "airlines": [
         "KLM"
       ],
@@ -82,7 +82,7 @@
   "failing_since": null,
   "last_daily_report": "2026-11-20",
   "alert_price": null,
-  "last_chart": "2026-11-20T18:19+01:00",
+  "last_chart": "2026-11-21T00:19+01:00",
   "history": [
     {
       "time": "2026-11-09T15:29+01:00",
@@ -2385,6 +2385,15 @@
         "KRK": 2669,
         "KTW": 5982,
         "PRG": 4194,
+        "VIE": 3394
+      }
+    },
+    {
+      "time": "2026-11-21T00:19+01:00",
+      "prices": {
+        "KRK": 2669,
+        "KTW": 5982,
+        "PRG": 4492,
         "VIE": 3394
       }
     }
