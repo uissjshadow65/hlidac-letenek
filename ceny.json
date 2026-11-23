@@ -34,7 +34,7 @@
     "KTW 2027-05-13": {
       "origin": "KTW",
       "return_date": "2027-05-13",
-      "price_per_person": 5993,
+      "price_per_person": 5994,
       "airlines": [
         "LOT"
       ],
@@ -79,7 +79,7 @@
       "url": "https://www.google.com/travel/flights/search?tfs=GhoSCjIwMjctMDUtMDhqBRIDVklFcgUSA1BBUhoaEgoyMDI3LTA1LTEzagUSA1BBUnIFEgNWSUVCAgEBSAGYAQE=&hl=cs&curr=CZK"
     }
   },
-  "failing_since": "2026-11-23T04:22+01:00",
+  "failing_since": null,
   "last_daily_report": "2026-11-22",
   "alert_price": null,
   "last_chart": "2026-11-23T01:19+01:00",
@@ -2807,6 +2807,15 @@
       "prices": {
         "KRK": 2742,
         "KTW": 5993,
+        "PRG": 4736,
+        "VIE": 3394
+      }
+    },
+    {
+      "time": "2026-11-23T06:19+01:00",
+      "prices": {
+        "KRK": 2742,
+        "KTW": 5994,
         "PRG": 4736,
         "VIE": 3394
       }
