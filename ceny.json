@@ -72,7 +72,7 @@
     "VIE 2027-05-13": {
       "origin": "VIE",
       "return_date": "2027-05-13",
-      "price_per_person": 3392,
+      "price_per_person": 3389,
       "airlines": [
         "Austrian"
       ],
@@ -82,7 +82,7 @@
   "failing_since": null,
   "last_daily_report": "2026-11-23",
   "alert_price": null,
-  "last_chart": "2026-11-23T20:19+01:00",
+  "last_chart": "2026-11-24T02:19+01:00",
   "history": [
     {
       "time": "2026-11-09T15:29+01:00",
@@ -2930,6 +2930,15 @@
     },
     {
       "time": "2026-11-24T01:19+01:00",
+      "prices": {
+        "KRK": 2754,
+        "KTW": 5997,
+        "PRG": 4736,
+        "VIE": 3387
+      }
+    },
+    {
+      "time": "2026-11-24T02:19+01:00",
       "prices": {
         "KRK": 2754,
         "KTW": 5997,
