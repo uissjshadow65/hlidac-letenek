@@ -16,7 +16,7 @@
     "KRK 2027-05-13": {
       "origin": "KRK",
       "return_date": "2027-05-13",
-      "price_per_person": 2738,
+      "price_per_person": 2732,
       "airlines": [
         "Ryanair"
       ],
@@ -3157,6 +3157,15 @@
       "time": "2026-11-25T09:19+01:00",
       "prices": {
         "KRK": 2738,
+        "KTW": 5267,
+        "PRG": 4497,
+        "VIE": 3388
+      }
+    },
+    {
+      "time": "2026-11-25T10:19+01:00",
+      "prices": {
+        "KRK": 2732,
         "KTW": 5267,
         "PRG": 4497,
         "VIE": 3388
