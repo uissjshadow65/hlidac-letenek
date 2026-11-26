@@ -7,6 +7,9 @@ ze 7 letišť v okolí a při **jakékoli změně ceny** pošle notifikaci do mo
 Ceny ve zprávách jsou **za osobu**. Ptáme se na 2 osoby a dělíme dvěma – když v akční ceně
 zbývá jen jedno místo, uvidíš skutečnou cenu pro dva.
 
+> **Nově:** ve složce [`pariz27/`](pariz27/) je aplikace **Paříž 27**, instalovatelná aplikace pro iPhone a iPad
+> s rozpočtem cesty a nápady. Návod k nasazení a instalaci je v [`pariz27/README.md`](pariz27/README.md).
+
 ## Jaké zprávy chodí
 | Zpráva | Kdy |
 |---|---|

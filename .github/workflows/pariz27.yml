@@ -1,0 +1,43 @@
+# Testy aplikace Paříž 27 – spouští se jen při změně ve složce pariz27/.
+name: Paříž 27 – testy
+
+on:
+  push:
+    paths: ['pariz27/**', '.github/workflows/pariz27.yml']
+  pull_request:
+    paths: ['pariz27/**', '.github/workflows/pariz27.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: pariz27
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+        ports: ['5432:5432']
+        options: >-
+          --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: pariz27/package-lock.json
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm test
+      - run: npm run test:db
+        env:
+          TEST_DATABASE_URL: postgres://postgres:postgres@localhost:5432/postgres
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
