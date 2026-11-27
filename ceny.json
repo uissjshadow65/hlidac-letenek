@@ -16,7 +16,7 @@
     "KRK 2027-05-13": {
       "origin": "KRK",
       "return_date": "2027-05-13",
-      "price_per_person": 4034,
+      "price_per_person": 4035,
       "airlines": [
         "Ryanair"
       ],
@@ -79,7 +79,7 @@
       "url": "https://www.google.com/travel/flights/search?tfs=GhoSCjIwMjctMDUtMDhqBRIDVklFcgUSA1BBUhoaEgoyMDI3LTA1LTEzagUSA1BBUnIFEgNWSUVCAgEBSAGYAQE=&hl=cs&curr=CZK"
     }
   },
-  "failing_since": "2026-11-27T03:22+01:00",
+  "failing_since": null,
   "last_daily_report": "2026-11-26",
   "alert_price": null,
   "last_chart": "2026-11-26T23:21+01:00",
@@ -3461,6 +3461,15 @@
     },
     {
       "time": "2026-11-27T02:19+01:00",
+      "prices": {
+        "KRK": 3671,
+        "KTW": 5260,
+        "PRG": 4497,
+        "VIE": 3391
+      }
+    },
+    {
+      "time": "2026-11-27T04:22+01:00",
       "prices": {
         "KRK": 3671,
         "KTW": 5260,
