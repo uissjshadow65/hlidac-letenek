@@ -25,7 +25,7 @@
     "KTW 2027-05-12": {
       "origin": "KTW",
       "return_date": "2027-05-12",
-      "price_per_person": 6326,
+      "price_per_person": 6332,
       "airlines": [
         "LOT"
       ],
@@ -45,7 +45,7 @@
     "PRG 2027-05-12": {
       "origin": "PRG",
       "return_date": "2027-05-12",
-      "price_per_person": 4497,
+      "price_per_person": 4955,
       "airlines": [
         "KLM"
       ],
@@ -54,16 +54,16 @@
     "PRG 2027-05-13": {
       "origin": "PRG",
       "return_date": "2027-05-13",
-      "price_per_person": 5111,
+      "price_per_person": 5105,
       "airlines": [
-        "KLM"
+        "LOT"
       ],
       "url": "https://www.google.com/travel/flights/search?tfs=GhoSCjIwMjctMDUtMDhqBRIDUFJHcgUSA1BBUhoaEgoyMDI3LTA1LTEzagUSA1BBUnIFEgNQUkdCAgEBSAGYAQE=&hl=cs&curr=CZK"
     },
     "VIE 2027-05-12": {
       "origin": "VIE",
       "return_date": "2027-05-12",
-      "price_per_person": 3391,
+      "price_per_person": 3389,
       "airlines": [
         "Austrian"
       ],
@@ -79,7 +79,7 @@
       "url": "https://www.google.com/travel/flights/search?tfs=GhoSCjIwMjctMDUtMDhqBRIDVklFcgUSA1BBUhoaEgoyMDI3LTA1LTEzagUSA1BBUnIFEgNWSUVCAgEBSAGYAQE=&hl=cs&curr=CZK"
     }
   },
-  "failing_since": "2026-11-27T14:22+01:00",
+  "failing_since": null,
   "last_daily_report": "2026-11-27",
   "alert_price": null,
   "last_chart": "2026-11-27T13:19+01:00",
@@ -3529,6 +3529,15 @@
         "KTW": 5260,
         "PRG": 4497,
         "VIE": 3390
+      }
+    },
+    {
+      "time": "2026-11-27T16:19+01:00",
+      "prices": {
+        "KRK": 3671,
+        "KTW": 5260,
+        "PRG": 4955,
+        "VIE": 3389
       }
     }
   ]
