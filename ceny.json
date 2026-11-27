@@ -54,9 +54,9 @@
     "PRG 2027-05-13": {
       "origin": "PRG",
       "return_date": "2027-05-13",
-      "price_per_person": 5138,
+      "price_per_person": 5111,
       "airlines": [
-        "SWISS"
+        "KLM"
       ],
       "url": "https://www.google.com/travel/flights/search?tfs=GhoSCjIwMjctMDUtMDhqBRIDUFJHcgUSA1BBUhoaEgoyMDI3LTA1LTEzagUSA1BBUnIFEgNQUkdCAgEBSAGYAQE=&hl=cs&curr=CZK"
     },
@@ -3452,6 +3452,15 @@
     },
     {
       "time": "2026-11-27T01:19+01:00",
+      "prices": {
+        "KRK": 3671,
+        "KTW": 5260,
+        "PRG": 4497,
+        "VIE": 3391
+      }
+    },
+    {
+      "time": "2026-11-27T02:19+01:00",
       "prices": {
         "KRK": 3671,
         "KTW": 5260,
