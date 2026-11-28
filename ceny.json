@@ -79,7 +79,7 @@
       "url": "https://www.google.com/travel/flights/search?tfs=GhoSCjIwMjctMDUtMDhqBRIDVklFcgUSA1BBUhoaEgoyMDI3LTA1LTEzagUSA1BBUnIFEgNWSUVCAgEBSAGYAQE=&hl=cs&curr=CZK"
     }
   },
-  "failing_since": "2026-11-28T03:22+01:00",
+  "failing_since": null,
   "last_daily_report": "2026-11-27",
   "alert_price": null,
   "last_chart": "2026-11-28T01:19+01:00",
@@ -3623,6 +3623,15 @@
     },
     {
       "time": "2026-11-28T02:19+01:00",
+      "prices": {
+        "KRK": 4046,
+        "KTW": 5291,
+        "PRG": 4955,
+        "VIE": 3395
+      }
+    },
+    {
+      "time": "2026-11-28T04:19+01:00",
       "prices": {
         "KRK": 4046,
         "KTW": 5291,
